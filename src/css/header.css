@@ -1,0 +1,23 @@
+header {
+    height: 60px;
+    background-color: #3771dd;
+  }
+
+a {
+    text-decoration: none;
+}
+
+#title{
+    color: white;
+    font-size: 40px;
+}
+
+#title:hover{
+    font-size: 41px;
+    text-decoration: none !important;  /* Ensure no underline on hover */
+
+}
+
+#search-bar{
+    width: 40%;
+}

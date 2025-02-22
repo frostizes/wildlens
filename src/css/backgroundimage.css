@@ -1,0 +1,27 @@
+#background-container {
+  overflow: 'hidden';
+  width: 100%;
+  height: 'auto'
+}
+
+#background-image {
+  width: 100%;
+  height: auto;
+  object-fit: 'cover'; 
+  object-position: 'center'; 
+}
+
+#floating-section-bg-picture {
+  position: absolute;
+  top: 30%;
+  left: 20%;
+  transform: translate(-50%, -50%);
+  background-color: #3771dd;  /* Optional: for readability */
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.store {
+  margin: 10px;
+}
