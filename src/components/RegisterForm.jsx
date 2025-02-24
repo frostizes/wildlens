@@ -2,6 +2,7 @@ import { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import appleSignIn from "../assets/apple_sign_in.png";
 import googleSignIn from "../assets/google_sign_in.png";
+import axios from "axios"; 
 
 function RegisterForm() {
   const [name, setName] = useState("");
@@ -10,18 +11,24 @@ function RegisterForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       setError("Passwords do not match!");
       return;
     }
     setError("");
-    console.log("Name:", name);
-    console.log("Email:", email);
-    console.log("Password:", password);
-
-    // Here, you can add registration logic, such as calling an API
+    try{
+      const response = await axios.post("https://localhost:54125/api/Auth/register", {
+        username: name,
+        email: email,
+        password: password,
+      });
+      console.log("Success:", response.data);
+    }
+    catch(error){
+      console.error("Error:", error.response ? error.response.data : error.message);
+    }
   };
 
   return (

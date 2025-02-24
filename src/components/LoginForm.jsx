@@ -3,15 +3,31 @@ import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import appleSignIn from "../assets/apple_sign_in.png";
 import googleSignIn from "../assets/google_sign_in.png";
+import axios from "axios"; 
+import { useAuth } from "../context/AuthContext"; // ✅ Import AuthContext
+
 
 function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { login } = useAuth(); // ✅ Get login function from AuthContext
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Email:", email);
-    console.log("Password:", password);
+    try {
+      const response = await axios.post("https://localhost:54125/api/Auth/login", {
+        email: email,
+        password: password,
+      });
+      console.log("Success:", response.data.token);
+      // ✅ Update global auth state
+      login(response.data.token);
+
+    }
+    catch (error) {
+      console.error("Error:", error.response ? error.response.data : error.message);
+    }
+    
   };
 
   return (

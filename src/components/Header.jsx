@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import "bootstrap/dist/css/bootstrap.min.css"; // Make sure to import Bootstrap CSS
 
 function Header() {
+  const { user, logout } = useAuth(); // Add this line for authentication state
+  console.log(user);  // Log the user to see what it's returning
+
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearch = (e) => {
@@ -29,15 +33,29 @@ function Header() {
         <button type="submit" className="btn btn-light">Search</button>
       </form>
 
-      {/* Login/Register Buttons */}
-      <div>
-        <Link to="/login">
-          <button className="btn btn-light me-2">Login</button>
-        </Link>
-        <Link to="/register">
-          <button className="btn btn-outline-light ms-2">Register</button>
-        </Link>
-      </div>
+      {user ? (
+          <>
+            <div className="d-flex">
+            <Link to="/profile">
+                <button className="btn btn-light me-2">Profile</button>
+            </Link>
+            <Link to="/">
+                <button className="btn btn-danger" onClick={logout}>Logout</button>
+            </Link>
+            </div>
+          </>
+        ) : (
+          <>
+           <div className="d-flex">
+            <Link to="/login">
+                <button className="btn btn-light me-2">Login</button>
+            </Link>
+            <Link to="/register">
+                <button className="btn btn-outline-light">Register</button>
+            </Link>
+            </div>
+          </>
+        )}
     </header>
   );
 }
