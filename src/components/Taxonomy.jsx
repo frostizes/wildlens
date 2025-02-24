@@ -3,22 +3,26 @@ import axios from 'axios';
 import * as d3 from 'd3';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+// Global variable
+let allData = [];
 let currentDepth = 0;
 let currentlySelectedNode = "Mammals";
 let currentParentHierarchy = [];
 let parentHierarchy = ["orderName","familyName","genusName"];
-let data = [];
 
 function Taxonomy() {
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  currentParentHierarchy.push("Mammals");
   useEffect(() => {
     async function fetchTaxonomy() {
       try {
         const response = await axios.get("https://localhost:54125/Catalog/GetTaxonomyTreeSummary");
-        data = response.data;
+        allData = response.data;
         const formattedTree = buildHierarchy();
+        setData(formattedTree);
       } catch (error) {
         setError(error.message);
       } finally {
@@ -27,15 +31,17 @@ function Taxonomy() {
     }
 
     fetchTaxonomy();
-  }, []); // Runs only once when the component mounts
+  }, []);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
-  if (!data) return null;
+
 
   const handleNodeClick = (clickedNode) => {
-    // Rebuild the hierarchy with the clicked node as the root
-    const newTree = buildHierarchy(data, clickedNode.name);
+    // Modify global variable
+    console.log("clicked node:", clickedNode);
+    const newTree = buildHierarchy(clickedNode.name);
+    setData(newTree);
   };
 
   return (
@@ -46,9 +52,10 @@ function Taxonomy() {
 }
 
 function buildHierarchy(selectedNode = "Mammals") {
+  const tree = { name: selectedNode, children: [] };
   if(selectedNode == currentlySelectedNode && currentlySelectedNode != "Mammals"){
     currentDepth--;
-    currentParentHierarchy.pop(currentlySelectedNode); // Navigating deeper into the hierarchy
+    tree.name = currentParentHierarchy.pop(currentlySelectedNode);
 
   }
   else if(selectedNode != "Mammals"){
@@ -57,29 +64,32 @@ function buildHierarchy(selectedNode = "Mammals") {
 
   }
   currentlySelectedNode = selectedNode
-  const tree = { name: selectedNode, children: [] };
-
-  // Add only the first level of children (direct children of "Life")
-  data.forEach(({ orderName, englishName, speciesName }) => {
-    // Create an order node (only if not already created)
-    let orderNode = tree.children.find(o => o.name === parentHierarchy[currentDepth]);
+  allData.forEach(({ orderName, familyName, genusName }) => {
+    if(currentDepth == 1 && orderName != selectedNode){
+      return;
+    }
+    if(currentDepth == 2 && familyName != selectedNode){
+      return;
+    }
+    if(currentDepth == 3 && genusName != selectedNode){
+      return;
+    }
+    var hierarchyLevels = [orderName, familyName, genusName];
+    var currentHierarchy = hierarchyLevels[currentDepth];
+    let orderNode = tree.children.find(o => o.name === currentHierarchy);
     if (!orderNode) {
-      orderNode = { name: orderName, children: [] };
+      orderNode = { name: currentHierarchy, children: [] };
       tree.children.push(orderNode);
     }
-
-    // Add species as children of the order (no deeper nesting)
-    //orderNode.children.push({ name: `${englishName} (${speciesName})` });
   });
-
   return tree;
 }
 
-function TreeVisualization({ data }) {
+function TreeVisualization({ data, onNodeClick }) {
   useEffect(() => {
     const width = 1000, height = 1000;
     const svg = d3.select("#taxonomyTree").attr("width", width).attr("height", height);
-
+    d3.select("#taxonomyTree").selectAll("*").remove();
     const root = d3.hierarchy(data);
     const treeLayout = d3.tree().size([2 * Math.PI, 300]);
     treeLayout(root);
@@ -107,7 +117,7 @@ function TreeVisualization({ data }) {
       .style('stroke', '#fff')
       .style('stroke-width', '3px')
       .style('cursor', 'pointer')
-      .on('click', (event, d) => buildHierarchy(d.data.name));
+      .on('click', (event, d) => onNodeClick(d.data));
 
     nodes.append('text')
       .attr('dy', '.35em')
@@ -116,17 +126,11 @@ function TreeVisualization({ data }) {
       .style('font-size', '12px')
       .style('font-weight', 'bold')
       .attr('transform', d => {
-        // Calculate the angle in degrees (convert radians to degrees)
-        const angle = (d.x * 180 / Math.PI) - 90; // d.x is in radians, so convert to degrees
-        if(angle < 0){ // Add 180 degrees to the angle if it's negative (for the opposite direction)^
-          return `rotate(${Math.abs(angle)})`;
-        }
-        else{
-          return `rotate(-${angle})`; // Apply the inverse of the angle to rotate text correctly for the user
-        }
+        const angle = (d.x * 180 / Math.PI) - 90;
+        return angle < 0 ? `rotate(${Math.abs(angle)})` : `rotate(-${angle})`;
       })
       .text(d => d.data.name);
-  }, [data]);
+  }, [data, onNodeClick]);
 
   return <svg id="taxonomyTree"></svg>;
 }
