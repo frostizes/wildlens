@@ -10,6 +10,8 @@ function RegisterForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,7 +21,7 @@ function RegisterForm() {
     }
     setError("");
     try{
-      const response = await axios.post("https://localhost:54125/api/Auth/register", {
+      const response = await axios.post(API_BASE_URL + "/api/Auth/register", {
         username: name,
         email: email,
         password: password,

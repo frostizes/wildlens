@@ -1,27 +1,31 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import * as d3 from 'd3';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+
+//parent, count, name, isleaf
 // Global variable
 let allData = [];
-let currentDepth = 0;
-let currentlySelectedNode = "Mammals";
-let currentParentHierarchy = [];
-let parentHierarchy = ["orderName","familyName","genusName"];
+let currentParentNode = [];
 
 function Taxonomy() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate(); // Initialize navigation
+  const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
 
-  currentParentHierarchy.push("Mammals");
+
+
   useEffect(() => {
     async function fetchTaxonomy() {
       try {
-        const response = await axios.get("https://localhost:54125/Catalog/GetTaxonomyTreeSummary");
+        const response = await axios.get(API_BASE_URL + "/Catalog/GetTaxonomyTreeSummary");
         allData = response.data;
-        const formattedTree = buildHierarchy();
+        currentParentNode = ["Mammals"];
+        const formattedTree = buildHierarchy(navigate);
         setData(formattedTree);
       } catch (error) {
         setError(error.message);
@@ -39,8 +43,7 @@ function Taxonomy() {
 
   const handleNodeClick = (clickedNode) => {
     // Modify global variable
-    console.log("clicked node:", clickedNode);
-    const newTree = buildHierarchy(clickedNode.name);
+    const newTree = buildHierarchy(navigate, clickedNode.name);
     setData(newTree);
   };
 
@@ -51,35 +54,31 @@ function Taxonomy() {
   );
 }
 
-function buildHierarchy(selectedNode = "Mammals") {
+function buildHierarchy(navigate,selectedNode = "Mammals") {
+  //zoom out 
+  if(selectedNode === currentParentNode[currentParentNode.length - 1] && selectedNode !== "Mammals"){
+    currentParentNode.pop();
+    selectedNode = currentParentNode[currentParentNode.length - 1];
+  }
+  else if(selectedNode !== "Mammals"){
+    if(currentParentNode.length === 4){
+      const tree = { name: "Mammals", children: [] };
+      currentParentNode = ["Mammals"];
+      navigate("/AnimalPage");
+      return tree;
+    }
+    else{
+      currentParentNode.push(selectedNode);
+    }
+  }
   const tree = { name: selectedNode, children: [] };
-  if(selectedNode == currentlySelectedNode && currentlySelectedNode != "Mammals"){
-    currentDepth--;
-    tree.name = currentParentHierarchy.pop(currentlySelectedNode);
-
-  }
-  else if(selectedNode != "Mammals"){
-    currentDepth++;
-    currentParentHierarchy.push(currentlySelectedNode); // Navigating deeper into the hierarchy
-
-  }
-  currentlySelectedNode = selectedNode
-  allData.forEach(({ orderName, familyName, genusName }) => {
-    if(currentDepth == 1 && orderName != selectedNode){
-      return;
-    }
-    if(currentDepth == 2 && familyName != selectedNode){
-      return;
-    }
-    if(currentDepth == 3 && genusName != selectedNode){
-      return;
-    }
-    var hierarchyLevels = [orderName, familyName, genusName];
-    var currentHierarchy = hierarchyLevels[currentDepth];
-    let orderNode = tree.children.find(o => o.name === currentHierarchy);
-    if (!orderNode) {
-      orderNode = { name: currentHierarchy, children: [] };
-      tree.children.push(orderNode);
+  allData.forEach(({ name, parent }) => {
+    if(parent == selectedNode){
+      let orderNode = tree.children.find(o => o.name === name);
+      if (!orderNode) {
+        orderNode = { name: name, children: [] };
+        tree.children.push(orderNode);
+      } 
     }
   });
   return tree;

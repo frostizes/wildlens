@@ -11,11 +11,13 @@ function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { login } = useAuth(); // ✅ Get login function from AuthContext
+  const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("https://localhost:54125/api/Auth/login", {
+      const response = await axios.post(API_BASE_URL + "/api/Auth/login", {
         email: email,
         password: password,
       });
