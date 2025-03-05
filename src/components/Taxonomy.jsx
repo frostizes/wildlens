@@ -12,73 +12,62 @@ import Button from 'react-bootstrap/Button';
 // Global variable
 let allData = [];
 let currentParentNode = [];
+let globalTree = null;
+
 
 function Taxonomy() {
-  // const [data, setData] = useState(null);
-  // const [loading, setLoading] = useState(true);
-  // const [error, setError] = useState(null);
-  // const navigate = useNavigate(); // Initialize navigation
-  // const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
-  // const [show, setShow] = useState(false);
-
-  // const handleClose = () => setShow(false);
-  // const handleShow = () => setShow(true);
-
-
-  // useEffect(() => {
-  //   async function fetchTaxonomy() {
-  //     try {
-  //       const response = await axios.get(API_BASE_URL + "/Catalog/GetTaxonomyTreeSummary");
-  //       allData = response.data;
-  //       currentParentNode = ["Mammals"];
-  //       const formattedTree = buildHierarchy(navigate);
-  //       setData(formattedTree);
-  //     } catch (error) {
-  //       setError(error.message);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   }
-
-  //   fetchTaxonomy();
-  // }, []);
-
-  // if (loading) return <p>Loading...</p>;
-  // if (error) return <p>Error: {error}</p>;
-
-
-  // const handleNodeClick = (clickedNode) => {
-  //   // Modify global variable
-  //   const newTree = buildHierarchy(navigate, clickedNode.name);
-  //   setData(newTree);
-  // };
-
-  // return (
-  //   <div className="container text-center mt-4">
-  //     <TreeVisualization data={data} onNodeClick={handleNodeClick}/>
-  //     <CustomModal show={showModal} onClose={handleCloseModal} />
-  //   </div>
-  // );
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate(); // Initialize navigation
+  const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
   const [show, setShow] = useState(false);
-
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
+  const [selectedNode, setSelectedNode] = useState(null);
+
+  useEffect(() => {
+    async function fetchTaxonomy() {
+      try {
+        const response = await axios.get(API_BASE_URL + "/Catalog/GetTaxonomyTreeSummary");
+        allData = response.data;
+        currentParentNode = ["Mammals"];
+        const formattedTree = buildHierarchy(setShow, setSelectedNode);
+        setData(formattedTree);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchTaxonomy();
+  }, []);
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error}</p>;
+
+  
+  const handleNodeClick = (clickedNode) => {
+    // Modify global variable
+    globalTree  = buildHierarchy(setShow, setSelectedNode, clickedNode.name)
+    setData(globalTree);
+  };
 
   return (
-    <>
-      <Button variant="primary" onClick={handleShow}>
-        View Animal Details
-      </Button>
-
+    <div className="container text-center mt-4">
+      <TreeVisualization data={data} onNodeClick={handleNodeClick}/>
       <AnimalModal 
         show={show} 
         handleClose={handleClose} 
+        selectedNode={selectedNode}  // Pass the selected node to AnimalModal
+
       />
-    </>
+    </div>
   );
 } 
 
-function buildHierarchy(navigate,selectedNode = "Mammals") {
+function buildHierarchy(setShow, setSelectedNode,selectedNode = "Mammals") {
   //zoom out 
   if(selectedNode === currentParentNode[currentParentNode.length - 1] && selectedNode !== "Mammals"){
     currentParentNode.pop();
@@ -86,10 +75,10 @@ function buildHierarchy(navigate,selectedNode = "Mammals") {
   }
   else if(selectedNode !== "Mammals"){
     if(currentParentNode.length === 4){
-      const tree = { name: "Mammals", children: [] };
       currentParentNode = ["Mammals"];
-      handleShowModal(); // Trigger modal display when the condition is met
-      return tree;
+      setShow(true);
+      setSelectedNode(selectedNode);  // Update the selected node
+      return globalTree;
     }
     else{
       currentParentNode.push(selectedNode);

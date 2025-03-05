@@ -1,0 +1,24 @@
+
+#carousel .carousel-control-prev,
+#carousel .carousel-control-next {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10; /* Ensure arrows are on top of the content */
+  width: 20px;
+}
+
+#carousel .carousel-control-prev {
+  left: 3%; /* Move the left arrow outside */
+}
+
+#carousel .carousel-control-next {
+  right: 3%; /* Move the right arrow outside */
+}
+
+#carousel .carousel-indicators {
+  position: fixed;
+  bottom: 3%;
+  z-index: 10; /* Ensure arrows are on top of the content */
+}
+
