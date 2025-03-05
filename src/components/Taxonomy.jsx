@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import * as d3 from 'd3';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import AnimalModal from "./AnimalDetails";
+import Button from 'react-bootstrap/Button';
+
 
 
 //parent, count, name, isleaf
@@ -11,48 +14,69 @@ let allData = [];
 let currentParentNode = [];
 
 function Taxonomy() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const navigate = useNavigate(); // Initialize navigation
-  const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
+  // const [data, setData] = useState(null);
+  // const [loading, setLoading] = useState(true);
+  // const [error, setError] = useState(null);
+  // const navigate = useNavigate(); // Initialize navigation
+  // const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
+  // const [show, setShow] = useState(false);
+
+  // const handleClose = () => setShow(false);
+  // const handleShow = () => setShow(true);
 
 
+  // useEffect(() => {
+  //   async function fetchTaxonomy() {
+  //     try {
+  //       const response = await axios.get(API_BASE_URL + "/Catalog/GetTaxonomyTreeSummary");
+  //       allData = response.data;
+  //       currentParentNode = ["Mammals"];
+  //       const formattedTree = buildHierarchy(navigate);
+  //       setData(formattedTree);
+  //     } catch (error) {
+  //       setError(error.message);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }
 
-  useEffect(() => {
-    async function fetchTaxonomy() {
-      try {
-        const response = await axios.get(API_BASE_URL + "/Catalog/GetTaxonomyTreeSummary");
-        allData = response.data;
-        currentParentNode = ["Mammals"];
-        const formattedTree = buildHierarchy(navigate);
-        setData(formattedTree);
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    }
+  //   fetchTaxonomy();
+  // }, []);
 
-    fetchTaxonomy();
-  }, []);
-
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error}</p>;
+  // if (loading) return <p>Loading...</p>;
+  // if (error) return <p>Error: {error}</p>;
 
 
-  const handleNodeClick = (clickedNode) => {
-    // Modify global variable
-    const newTree = buildHierarchy(navigate, clickedNode.name);
-    setData(newTree);
-  };
+  // const handleNodeClick = (clickedNode) => {
+  //   // Modify global variable
+  //   const newTree = buildHierarchy(navigate, clickedNode.name);
+  //   setData(newTree);
+  // };
+
+  // return (
+  //   <div className="container text-center mt-4">
+  //     <TreeVisualization data={data} onNodeClick={handleNodeClick}/>
+  //     <CustomModal show={showModal} onClose={handleCloseModal} />
+  //   </div>
+  // );
+  const [show, setShow] = useState(false);
+
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
 
   return (
-    <div className="container text-center mt-4">
-      <TreeVisualization data={data} onNodeClick={handleNodeClick}/>
-    </div>
+    <>
+      <Button variant="primary" onClick={handleShow}>
+        View Animal Details
+      </Button>
+
+      <AnimalModal 
+        show={show} 
+        handleClose={handleClose} 
+      />
+    </>
   );
-}
+} 
 
 function buildHierarchy(navigate,selectedNode = "Mammals") {
   //zoom out 
@@ -64,7 +88,7 @@ function buildHierarchy(navigate,selectedNode = "Mammals") {
     if(currentParentNode.length === 4){
       const tree = { name: "Mammals", children: [] };
       currentParentNode = ["Mammals"];
-      navigate("/AnimalPage");
+      handleShowModal(); // Trigger modal display when the condition is met
       return tree;
     }
     else{
