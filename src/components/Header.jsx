@@ -26,7 +26,7 @@ function Header() {
         <input
           type="text"
           className="form-control me-2"
-          placeholder="Search for profiles ..."
+          placeholder="Search for profiles or mammals..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />

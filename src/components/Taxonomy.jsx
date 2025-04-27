@@ -6,20 +6,17 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import AnimalModal from "./AnimalDetails";
 import Button from 'react-bootstrap/Button';
 
-
-
-//parent, count, name, isleaf
-// Global variable
+// Global variables
 let allData = [];
 let currentParentNode = [];
 let globalTree = null;
-
 
 function Taxonomy() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigate = useNavigate(); // Initialize navigation
+  const [viewMode, setViewMode] = useState('tree'); // <-- ADD this
+  const navigate = useNavigate();
   const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
@@ -40,58 +37,79 @@ function Taxonomy() {
         setLoading(false);
       }
     }
-
     fetchTaxonomy();
   }, []);
+
+  const handleNodeClick = (clickedNode) => {
+    globalTree = buildHierarchy(setShow, setSelectedNode, clickedNode.name);
+    setData(globalTree);
+  };
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
 
-  
-  const handleNodeClick = (clickedNode) => {
-    // Modify global variable
-    globalTree  = buildHierarchy(setShow, setSelectedNode, clickedNode.name)
-    setData(globalTree);
-  };
-
   return (
-    <div className="container text-center mt-4">
-      <TreeVisualization data={data} onNodeClick={handleNodeClick}/>
+    <div className="m-3">
+      <div className="d-flex justify-content-start mb-3">
+        {/* Toggle Button */}
+        <Button variant="secondary" onClick={() => setViewMode(viewMode === 'tree' ? 'cards' : 'tree')}>
+          Switch to {viewMode === 'tree' ? 'Card View' : 'Tree View'}
+        </Button>
+      </div>
+
+      {viewMode === 'tree' ? (
+        <div className="text-center">
+          <TreeVisualization data={data} onNodeClick={handleNodeClick} />
+        </div>
+      ) : (
+        <div className="row">
+          {/* Render cards in grid */}
+          {data.children.map((node, index) => (
+            <div className="col-md-4 mb-3" key={index}>
+              <div className="card">
+                <div className="card-body text-center">
+                  <h5 className="card-title">{node.name}</h5>
+                  <Button variant="primary" onClick={() => handleNodeClick(node)}>
+                    Explore
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       <AnimalModal 
         show={show} 
         handleClose={handleClose} 
-        selectedNode={selectedNode}  // Pass the selected node to AnimalModal
-
+        selectedNode={selectedNode}
       />
     </div>
   );
-} 
+}
 
-function buildHierarchy(setShow, setSelectedNode,selectedNode = "Mammals") {
-  //zoom out 
-  if(selectedNode === currentParentNode[currentParentNode.length - 1] && selectedNode !== "Mammals"){
+function buildHierarchy(setShow, setSelectedNode, selectedNode = "Mammals") {
+  if (selectedNode === currentParentNode[currentParentNode.length - 1] && selectedNode !== "Mammals") {
     currentParentNode.pop();
     selectedNode = currentParentNode[currentParentNode.length - 1];
-  }
-  else if(selectedNode !== "Mammals"){
-    if(currentParentNode.length === 4){
+  } else if (selectedNode !== "Mammals") {
+    if (currentParentNode.length === 4) {
       currentParentNode = ["Mammals"];
       setShow(true);
-      setSelectedNode(selectedNode);  // Update the selected node
+      setSelectedNode(selectedNode);
       return globalTree;
-    }
-    else{
+    } else {
       currentParentNode.push(selectedNode);
     }
   }
   const tree = { name: selectedNode, children: [] };
   allData.forEach(({ name, parent }) => {
-    if(parent == selectedNode){
+    if (parent === selectedNode) {
       let orderNode = tree.children.find(o => o.name === name);
       if (!orderNode) {
         orderNode = { name: name, children: [] };
         tree.children.push(orderNode);
-      } 
+      }
     }
   });
   return tree;

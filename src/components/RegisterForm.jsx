@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import appleSignIn from "../assets/apple_sign_in.png";
 import googleSignIn from "../assets/google_sign_in.png";
-import axios from "axios"; 
+import axios from "axios";
 
 function RegisterForm() {
   const [name, setName] = useState("");
@@ -12,24 +13,34 @@ function RegisterForm() {
   const [error, setError] = useState("");
   const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
 
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (password !== confirmPassword) {
       setError("Passwords do not match!");
       return;
     }
-    setError("");
-    try{
-      const response = await axios.post(API_BASE_URL + "/api/Auth/register", {
+
+    setError(""); // Clear any previous errors
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/Auth/register`, {
         username: name,
         email: email,
         password: password,
       });
       console.log("Success:", response.data);
-    }
-    catch(error){
-      console.error("Error:", error.response ? error.response.data : error.message);
+
+      // Redirect to login page
+      navigate("/profile");
+    } catch (err) {
+      const message =
+        err.response?.data?.[0]?.description ||
+        err.response?.data?.message ||
+        "Registration failed.";
+      setError(message);
     }
   };
 
@@ -37,7 +48,6 @@ function RegisterForm() {
     <div className="d-flex vh-100 justify-content-center align-items-center">
       <div className="p-4 border rounded shadow bg-light" id="register-form-container">
         <h2 className="text-center mb-4">Register</h2>
-        {error && <div className="alert alert-danger text-center">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
             <input
@@ -79,15 +89,23 @@ function RegisterForm() {
               required
             />
           </div>
+
+          {/* Error message */}
+          {error && (
+            <div className="alert alert-danger text-center mb-3">
+              {error}
+            </div>
+          )}
+
           <button type="submit" className="btn btn-primary w-100 mb-3">Register</button>
         </form>
 
         <div className="text-center">
           <a href="/login">
-            <img src={appleSignIn} className="img-fluid mb-2" alt="Sign in with Apple" class="token-sign-in" />
+            <img src={appleSignIn} className="img-fluid mb-2 token-sign-in" alt="Sign in with Apple" />
           </a>
           <a href="/login">
-            <img src={googleSignIn} className="img-fluid" alt="Sign in with Google" class="token-sign-in" />
+            <img src={googleSignIn} className="img-fluid token-sign-in" alt="Sign in with Google" />
           </a>
         </div>
       </div>
