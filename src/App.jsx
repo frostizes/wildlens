@@ -1,34 +1,45 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
-import BackgroundImage from "./components/BackgroundImage";
-import Body from "./components/Body";
+import LandingPage from "./components/LandingPage";
 import Footer from "./components/Footer";
 import Taxonomy from "./components/Taxonomy";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import ProfilePage from "./pages/ProfilePage";
-import AnimalPage from "./pages/AnimalPage";
+import AccountPage from "./pages/AccountPage";
+import CatalogPage from "./pages/CatalogPage";
+import SearchPage from "./pages/SearchPage";
+import { useAuth } from "./context/AuthContext";
+
 
 function App() {
+  const { isAuthenticated, token, logout } = useAuth(); // Add this line for authentication state
   return (
     <Router>
       <Routes>
         {/* Public Main Page (Accessible to Everyone) */}
-        <Route 
-          path="/" 
+        <Route
+          path="/"
           element={
             <>
-              <Header />
-              <BackgroundImage />
-              <Body />
+              {isAuthenticated ? (
+                <>
+                  <CatalogPage />
+                </>
+              ) : (
+                <>
+                  <Header />
+                  <LandingPage />
+                </>
+              )}
               <Footer />
             </>
-          } 
+          }
         />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/profile" element={<ProfilePage/>} />
-        <Route path="/AnimalPage" element={<AnimalPage/>} />
+        <Route path="/account" element={<AccountPage />} />
+        <Route path="/catalog" element={<CatalogPage />} />
+        <Route path="/search/:query" element={<SearchPage />} />
       </Routes>
     </Router>
   );

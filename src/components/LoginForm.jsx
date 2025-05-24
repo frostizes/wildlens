@@ -27,13 +27,12 @@ function LoginForm() {
           },
         }
       );
-
+      console.log("Google login response:", response.data);
       const { token, redirectUrl } = response.data; // Extract token and redirect URL
       localStorage.setItem("authToken", token); // Save token to localStorage
-
       // Redirect to the specified URL
       if (redirectUrl) {
-        window.location.href = redirectUrl;
+        window.location.href = "/catalog";
       }
     } catch (error) {
       console.error("Error during Google login:", error.response?.data || error.message);

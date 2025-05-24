@@ -34,7 +34,7 @@ function RegisterForm() {
       console.log("Success:", response.data);
 
       // Redirect to login page
-      navigate("/profile");
+      navigate("/catalog");
     } catch (err) {
       const message =
         err.response?.data?.[0]?.description ||
