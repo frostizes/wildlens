@@ -1,23 +1,38 @@
 header {
     height: 60px;
     background-color: #3771dd;
-  }
+}
+
+.custom_link_class {
+    color: black;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: -1px;
+    background-color: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    text-decoration: none;
+}
+
+.custom_link_class:hover {
+    background-color: #3771dd;
+    color: white;
+}
 
 a {
     text-decoration: none;
 }
 
-#title{
+#title {
     color: white;
     font-size: 40px;
 }
 
-#title:hover{
+#title:hover {
     font-size: 41px;
-    text-decoration: none !important;  /* Ensure no underline on hover */
+    text-decoration: none !important;
+    /* Ensure no underline on hover */
 
 }
 
-#search-bar{
+#search-bar {
     width: 40%;
 }

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import RegisterForm from "../components/RegisterForm";
 import Taxonomy from "../components/Taxonomy";
-import AnimalDetails from "../components/AnimalDetails";
+import AnimalPictures from "../components/AnimalPictures";
 
 
 function ProfilePage() {
@@ -11,7 +11,7 @@ function ProfilePage() {
   return (
     <>
     <Header />
-    <AnimalDetails />
+    <AnimalPictures />
   </>
   );
 }

@@ -8,6 +8,7 @@ import RegisterPage from "./pages/RegisterPage";
 import AccountPage from "./pages/AccountPage";
 import CatalogPage from "./pages/CatalogPage";
 import SearchPage from "./pages/SearchPage";
+import AnimalWikiPage from "./pages/AnimalWikiPage";
 import { useAuth } from "./context/AuthContext";
 
 
@@ -40,6 +41,7 @@ function App() {
         <Route path="/account" element={<AccountPage />} />
         <Route path="/catalog" element={<CatalogPage />} />
         <Route path="/search/:query" element={<SearchPage />} />
+        <Route path="/animalwiki/:animal" element={<AnimalWikiPage />} />
       </Routes>
     </Router>
   );

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Modal, Button, Carousel, Form } from 'react-bootstrap';
-import { FaStar, FaEdit, FaUpload, FaTimes} from 'react-icons/fa';
+import { FaStar, FaEdit, FaUpload, FaTimes } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 
 function AnimalModal({ show, handleClose, selectedNode }) {
@@ -21,7 +21,7 @@ function AnimalModal({ show, handleClose, selectedNode }) {
   }, [show]); // Fetch images when modal is shown
 
   const fetchImages = async () => {
-    console.log("token " +  user);
+    console.log("token " + user);
     try {
       const response = await fetch(API_BASE_URL + "/Catalog/GetUserImagesPaths", {
         method: 'GET',
@@ -63,7 +63,7 @@ function AnimalModal({ show, handleClose, selectedNode }) {
         <Modal.Title>{selectedNode}</Modal.Title>
         <div className="d-flex align-items-center">
           <FaUpload size={20} className="me-3" style={{ cursor: 'pointer' }} />
-          <FaEdit size={20} className="me-3" style={{ cursor: 'pointer' }} onClick={handleEditClick}/>
+          <FaEdit size={20} className="me-3" style={{ cursor: 'pointer' }} onClick={handleEditClick} />
           <Button variant="close" onClick={handleClose} />
         </div>
       </Modal.Header>
@@ -79,12 +79,12 @@ function AnimalModal({ show, handleClose, selectedNode }) {
                       <FaTimes
                         size={24}
                         color="red"
-                        className="position-absolute" 
+                        className="position-absolute"
                         style={{ top: 10, right: 10, cursor: 'pointer' }}
                         onClick={() => handleDeleteImage(index)}
                       />
-                    )}                  
-                    </Carousel.Item>
+                    )}
+                  </Carousel.Item>
                 ))
               ) : (
                 <p>No images available.</p>
