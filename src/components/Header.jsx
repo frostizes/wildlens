@@ -36,7 +36,9 @@ function Header() {
     if (debouncedQuery.trim() === "") return;
 
     if (debouncedQuery.trim().length < 2) {
-      setSearchResults([]);
+      setSearchResultsUsers([]);
+      setSearchResultsUsers([]);
+
       return;
     }
 
