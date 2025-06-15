@@ -15,7 +15,7 @@ function Taxonomy() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState('tree'); // <-- ADD this
+  const [viewMode, setViewMode] = useState('tree');
   const navigate = useNavigate();
   const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
   const [show, setShow] = useState(false);
@@ -26,9 +26,34 @@ function Taxonomy() {
   useEffect(() => {
     async function fetchTaxonomy() {
       try {
-        const response = await axios.get(API_BASE_URL + "/Catalog/GetTaxonomyTreeSummary");
-        allData = response.data;
-        currentParentNode = ["Mammals"];
+        const token = localStorage.getItem("authToken");
+        const taxonomyResponse = await axios.get(API_BASE_URL + "/Catalog/GetUserCatalog", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        const catalog = taxonomyResponse.data;
+        allData = [
+          ...(catalog.scorePerAnimalClassificationCategories.orderName || []).map(u => ({
+            name: u.category.name,
+            parent: u.category.parent,
+            score: u.score
+          })),
+          ...(catalog.scorePerAnimalClassificationCategories.familyName || []).map(u => ({
+            name: u.category.name,
+            parent: u.category.parent,
+            score: u.score
+          })),
+          ...(catalog.scorePerAnimalClassificationCategories.genusName || []).map(u => ({
+            name: u.category.name,
+            parent: u.category.parent,
+            score: u.score
+          })),
+        ];
+        console.log(allData);
+
+        currentParentNode = ["Mammal"];
         const formattedTree = buildHierarchy(setShow, setSelectedNode);
         setData(formattedTree);
       } catch (error) {
@@ -51,7 +76,6 @@ function Taxonomy() {
   return (
     <div className="m-3">
       <div className="d-flex justify-content-start mb-3">
-        {/* Toggle Button */}
         <Button variant="secondary" onClick={() => setViewMode(viewMode === 'tree' ? 'cards' : 'tree')}>
           Switch to {viewMode === 'tree' ? 'Card View' : 'Tree View'}
         </Button>
@@ -63,7 +87,6 @@ function Taxonomy() {
         </div>
       ) : (
         <div className="row">
-          {/* Render cards in grid */}
           {data.children.map((node, index) => (
             <div className="col-md-4 mb-3" key={index}>
               <div className="card">
@@ -102,16 +125,18 @@ function buildHierarchy(setShow, setSelectedNode, selectedNode = "Mammals") {
       currentParentNode.push(selectedNode);
     }
   }
+
   const tree = { name: selectedNode, children: [] };
-  allData.forEach(({ name, parent }) => {
+  allData.forEach(({ name, parent, score }) => {
     if (parent === selectedNode) {
-      let orderNode = tree.children.find(o => o.name === name);
-      if (!orderNode) {
-        orderNode = { name: name, children: [] };
-        tree.children.push(orderNode);
+      let existingNode = tree.children.find(o => o.name === name);
+      if (!existingNode) {
+        existingNode = { name: name, children: [], score: score };
+        tree.children.push(existingNode);
       }
     }
   });
+
   return tree;
 }
 
@@ -120,6 +145,7 @@ function TreeVisualization({ data, onNodeClick }) {
     const width = 1000, height = 1000;
     const svg = d3.select("#taxonomyTree").attr("width", width).attr("height", height);
     d3.select("#taxonomyTree").selectAll("*").remove();
+
     const root = d3.hierarchy(data);
     const treeLayout = d3.tree().size([2 * Math.PI, 300]);
     treeLayout(root);
