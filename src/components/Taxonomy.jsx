@@ -2,20 +2,24 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Button from 'react-bootstrap/Button';
+import { Link, useLocation } from 'react-router-dom';
 
 function Taxonomy() {
+  const location = useLocation();
   const [allScores, setAllScores] = useState([]);
   const [animals, setAnimals] = useState([]);
   const [filteredScores, setFilteredScores] = useState([]);
   const [filteredAnimals, setFilteredAnimals] = useState([]);
   const [path, setPath] = useState(["Mammal"]);
   const [loading, setLoading] = useState(true);
+  const [userName, SetUserName] = useState("");
   const [error, setError] = useState(null);
 
   const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
 
   useEffect(() => {
     async function fetchTaxonomy() {
+      SetUserName(localStorage.getItem("userName"));
       try {
         const token = localStorage.getItem("authToken");
 
@@ -26,30 +30,32 @@ function Taxonomy() {
         });
 
         const catalog = response.data;
-
         // Flatten taxonomy scores into one array
         const allData = [
           ...(catalog.scorePerAnimalClassificationCategories?.orderName || []).map(u => ({
             name: u.category.name,
             parent: u.category.parent,
             score: u.score,
+            totalScore: u.category.totalScore,
             level: "Order"
           })),
           ...(catalog.scorePerAnimalClassificationCategories?.familyName || []).map(u => ({
             name: u.category.name,
             parent: u.category.parent,
             score: u.score,
+            totalScore: u.category.totalScore,
             level: "Family"
           })),
           ...(catalog.scorePerAnimalClassificationCategories?.genusName || []).map(u => ({
             name: u.category.name,
             parent: u.category.parent,
             score: u.score,
+            totalScore: u.category.totalScore,
             level: "Genus"
           })),
         ];
-
         // Animal list
+
         const animalData = catalog.animalUserScores || [];
 
         setAllScores(allData);
@@ -143,7 +149,7 @@ function Taxonomy() {
                 <div className="card-body text-center">
                   <h5 className="card-title">{item.name}</h5>
                   <p className="card-text">
-                    <strong>Score:</strong> {item.score} <br />
+                    <strong>Score:</strong> {item.score} / {item.totalScore}<br />
                     <strong>Level:</strong> {item.level}
                   </p>
                 </div>
@@ -162,12 +168,21 @@ function Taxonomy() {
               <div className="col-md-4 mb-3" key={index}>
                 <div className="card shadow-sm">
                   <div className="card-body text-center">
-                    <h5 className="card-title">{animal.EnglishName}</h5>
+                    <h5 className="card-title">{animal.englishName}</h5>
                     <p>
-                      <strong>Name:</strong> {animal.englishName}<br />
-                      <strong>Genus:</strong> {animal.genus} <br />
                       <strong>Captured:</strong> {animal.isCaptured ? "Yes" : "No"}
                     </p>
+                    <Link
+                      to={`/animalwiki/${encodeURIComponent(animal.scientificName)}`}
+                    >
+                      <button className="btn me-2 btn-primary" >Wiki</button>
+                    </Link>
+
+                    <Link
+                      to={`/catalog/${userName}/${animal?.englishName}/`}
+                    >
+                      <button className="btn me-2 btn-primary" >View pictures</button>
+                    </Link>
                   </div>
                 </div>
               </div>

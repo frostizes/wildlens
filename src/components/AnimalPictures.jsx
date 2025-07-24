@@ -1,145 +1,111 @@
-import { useState, useEffect } from 'react';
-import { Modal, Button, Carousel, Form } from 'react-bootstrap';
-import { FaStar, FaEdit, FaUpload, FaTimes } from 'react-icons/fa';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useParams, useNavigate } from 'react-router-dom';
+import { FaUpload, FaEdit, FaTimes } from 'react-icons/fa';
+import { Button } from 'react-bootstrap';
+import { Link, useLocation } from "react-router-dom";
 
-function AnimalModal({ show, handleClose, selectedNode }) {
-  const { user } = useAuth(); // Get user from AuthContext
-  const [images, setImages] = useState([]); // State for images
-  const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState('');
-  const [rating, setRating] = useState(0);
-  const [hover, setHover] = useState(null);
+
+function AnimalGallery() {
+  const { animal } = useParams();
+  const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [images, setImages] = useState([]);
+  const fileInputRef = useRef();
+  const [userName, SetUserName] = useState("");
   const [showDeleteIcons, setShowDeleteIcons] = useState(false);
-  const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
 
+  const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
+  const token = localStorage.getItem('authToken');
 
   useEffect(() => {
-    if (show) {
-      fetchImages();
-    }
-  }, [show]); // Fetch images when modal is shown
+    SetUserName(localStorage.getItem("userName"));
+    fetchImages();
+  }, []);
 
   const fetchImages = async () => {
-    console.log("token " + user);
     try {
-      const response = await fetch(API_BASE_URL + "/Catalog/GetUserImagesPaths", {
-        method: 'GET',
-        headers: {
-          'Accept': '*/*',
-          "Authorization": `Bearer ${user}`, // ✅ Use JWT Token
-        }
+      const response = await fetch(`${API_BASE_URL}/Catalog/GetUserImagesPaths/${animal}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch images');
-      }
-
       const data = await response.json();
-      setImages(data); // Assuming API returns an array of image URLs
-    } catch (error) {
-      console.error('Error fetching images:', error);
+      setImages(data);
+    } catch (err) {
+      console.error('Failed to fetch images', err);
     }
   };
 
-  const handleCommentSubmit = () => {
-    if (newComment.trim() !== '') {
-      setComments([...comments, newComment]);
-      setNewComment('');
-    }
-  };
-  const handleEditClick = () => {
-    setShowDeleteIcons(!showDeleteIcons);
+  const handleUploadClick = () => fileInputRef.current?.click();
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    if (!file || !file.type.startsWith('image/')) return;
+
+    const formData = new FormData();
+    formData.append('picture', file, file.name);
+    formData.append('animalName', animal);
+
+    const response = await fetch(`${API_BASE_URL}/Catalog/UploadPicture`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+
+    if (response.ok) fetchImages();
   };
 
-  const handleDeleteImage = (index) => {
-    console.log("image to delete " + images.filter((_, i) => i !== index));
-    setImages(images.filter((_, i) => i !== index));
+  const handleDeleteImage = async (imagePath) => {
+    const formData = new FormData();
+    formData.append('imagePath', imagePath);
+
+    const response = await fetch(`${API_BASE_URL}/Catalog/DeletePicture`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+
+    if (response.ok) fetchImages();
   };
 
   return (
-    <Modal show={show} onHide={handleClose} centered dialogClassName="custom-modal" id="animal-modal">
-      <Modal.Header className="d-flex justify-content-between align-items-center">
-        <Modal.Title>{selectedNode}</Modal.Title>
-        <div className="d-flex align-items-center">
-          <FaUpload size={20} className="me-3" style={{ cursor: 'pointer' }} />
-          <FaEdit size={20} className="me-3" style={{ cursor: 'pointer' }} onClick={handleEditClick} />
-          <Button variant="close" onClick={handleClose} />
+    <div className="container mt-4">
+      <div className="d-flex justify-content-between mb-3">
+        <h2>{animal} Gallery</h2>
+        <div>
+          <FaUpload size={20} className="me-3" onClick={handleUploadClick} style={{ cursor: 'pointer' }} />
+          <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} />
+          <FaEdit size={20} onClick={() => setShowDeleteIcons(!showDeleteIcons)} style={{ cursor: 'pointer' }} />
         </div>
-      </Modal.Header>
-      <Modal.Body>
-        <div id='container-picture' className="d-flex">
-          <div className="d-flex flex-column align-items-center flex-grow-1">
-            <Carousel interval={null} id='carousel'>
-              {images.length > 0 ? (
-                images.map((image, index) => (
-                  <Carousel.Item key={index}>
-                    <img src={image} alt={`Animal ${index + 1}`} className="img-fluid rounded-lg" />
-                    {showDeleteIcons && (
-                      <FaTimes
-                        size={24}
-                        color="red"
-                        className="position-absolute"
-                        style={{ top: 10, right: 10, cursor: 'pointer' }}
-                        onClick={() => handleDeleteImage(index)}
-                      />
-                    )}
-                  </Carousel.Item>
-                ))
-              ) : (
-                <p>No images available.</p>
-              )}
-            </Carousel>
-          </div>
+      </div>
 
-          <div id="comment-section" className="border rounded p-3" style={{ width: '400px' }}>
-            <h5>Comments</h5>
-            <div className="comment-list" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-              {comments.length > 0 ? (
-                comments.map((comment, index) => (
-                  <p key={index} className="border-bottom pb-2">{comment}</p>
-                ))
-              ) : (
-                <p>No comments yet.</p>
-              )}
-            </div>
-            <Form.Group className="mt-3">
-              <Form.Control
-                as="textarea"
-                rows={2}
-                placeholder="Write a comment..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
+      <div className="row">
+        {images.map((img, idx) => (
+          <div className="col-6 col-md-3 mb-3 position-relative" key={idx}>
+            <Link
+              to={`/catalog/${userName}/${animal}/${encodeURIComponent(img)}`}
+              state={{ background: location }}>
+              <img
+                src={img}
+                alt={`Animal ${idx}`}
+                className="img-fluid rounded"
+                style={{ cursor: 'pointer' }}
               />
-              <Button className="mt-2 w-100" variant="primary" onClick={handleCommentSubmit}>
-                Post Comment
-              </Button>
-            </Form.Group>
-
-            {/* Star Rating System */}
-            <div className="mt-4 text-center">
-              <h6>Rate this picture</h6>
-              {[...Array(5)].map((star, index) => {
-                const ratingValue = index + 1;
-                return (
-                  <FaStar
-                    key={index}
-                    size={24}
-                    className="me-1"
-                    color={ratingValue <= (hover || rating) ? "#ffc107" : "#e4e5e9"}
-                    onClick={() => setRating(ratingValue)}
-                    onMouseEnter={() => setHover(ratingValue)}
-                    onMouseLeave={() => setHover(null)}
-                    style={{ cursor: 'pointer' }}
-                  />
-                );
-              })}
-            </div>
+            </Link>
+            {showDeleteIcons && (
+              <FaTimes
+                size={20}
+                color="red"
+                className="position-absolute"
+                style={{ top: 10, right: 10, cursor: 'pointer' }}
+                onClick={() => handleDeleteImage(img)}
+              />
+            )}
           </div>
-        </div>
-      </Modal.Body>
-    </Modal>
+        ))}
+      </div>
+    </div>
   );
 }
 
-export default AnimalModal;
+export default AnimalGallery;

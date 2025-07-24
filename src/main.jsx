@@ -8,9 +8,13 @@ import './css/register.css'
 import './css/AnimalDetail.css'
 import App from './App.jsx'
 import { AuthProvider } from "./context/AuthContext";
+import { BrowserRouter } from 'react-router-dom';
+
 
 createRoot(document.getElementById('root')).render(
   <AuthProvider>
-    <App />
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </AuthProvider>,
 )

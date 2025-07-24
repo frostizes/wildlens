@@ -27,9 +27,9 @@ function LoginForm() {
           },
         }
       );
-      console.log("Google login response:", response.data);
-      const { token, redirectUrl } = response.data; // Extract token and redirect URL
+      const { token, redirectUrl, userName } = response.data; // Extract token and redirect URL
       localStorage.setItem("authToken", token); // Save token to localStorage
+      localStorage.setItem("userName", userName); // Save token to localStorage
       // Redirect to the specified URL
       if (redirectUrl) {
         window.location.href = "/catalog";

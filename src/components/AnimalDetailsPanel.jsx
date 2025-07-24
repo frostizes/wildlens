@@ -5,12 +5,15 @@ import { useAuth } from '../context/AuthContext';
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { Link, useLocation } from "react-router-dom";
+
 
 function AnimalDetailsPanel() {
-
+  const location = useLocation();
   const { animal } = useParams();
   const [results, setResults] = useState(null); // single animal, not an array
   const [categories, setCategories] = useState([]);
+  const [userName, setSetUserName] = useState("");
   const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
   useEffect(() => {
     const fetchSearchResults = async () => {
@@ -30,9 +33,9 @@ function AnimalDetailsPanel() {
         setResults(null); // clear state on error
       }
     };
-
+    setSetUserName(localStorage.getItem("userName"));
     fetchSearchResults(); // Always fetch on mount or when query changes
-  }, [animal]);
+  }, [animal, location]);
 
   return (
     <div className="card">
@@ -44,9 +47,12 @@ function AnimalDetailsPanel() {
       <div className="card-body">
         <h5 className="card-title">{results?.englishName || "Animal Name"}</h5>
         <p className="card-text">{results?.description || "Short description of the animal."}</p>
-        <a href={`/gallery/${results?.id || "animal-id"}`} className="btn btn-primary">
-          View All Pictures
-        </a>
+        <Link 
+        to={`/catalog/${userName}/${results?.englishName}/`}
+        state={{ background: location }}
+        >
+          <button className="btn me-2 btn-primary" >View pictures</button>
+        </Link>
       </div>
     </div>
   );
