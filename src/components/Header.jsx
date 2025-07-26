@@ -3,69 +3,94 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from 'axios';
 import { useAuth } from "../context/AuthContext";
 import "bootstrap/dist/css/bootstrap.min.css";
+import logo from "../assets/logo.png"; // Ajoute ton logo ici
+import map from "../assets/Map.png"; // Ajoute ton logo ici
+import explore from "../assets/explore.png"; // Ajoute ton logo ici
+import picture from "../assets/picture.png"; // Ajoute ton logo ici
+import profile from "../assets/profile.png"; // Ajoute ton logo ici
+
+import mapGrey from "../assets/MapGrey.png"; // Ajoute ton logo ici
+import exploreGrey from "../assets/exploreGrey.png"; // Ajoute ton logo ici
+import pictureGrey from "../assets/pictureGrey.png"; // Ajoute ton logo ici
+import profileGrey from "../assets/profileGrey.png"; // Ajoute ton logo ici
+import profilePic from "../assets/profilePic.png"; // Ajoute ton logo ici
+
+
+import { color } from "d3";
 
 function Header() {
   const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [profilePicture, setProfilePicture] = useState("");
+  const [isHovered, setIsHovered] = useState(false);
+
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [showAnimals, setShowAnimals] = useState(true);
-  const [showUsers, setShowUsers] = useState(true);
   const [searchResultsAnimals, setSearchResultsAnimals] = useState([]);
   const [searchResultsUsers, setSearchResultsUsers] = useState([]);
+  const [active, setActive] = useState("explore"); // ou 'explore' par défaut
+  const icons = [
+    { name: "explore", defaultImg: exploreGrey, activeImg: explore },
+    { name: "map", defaultImg: mapGrey, activeImg: map },
+    { name: "picture", defaultImg: pictureGrey, activeImg: picture },
+    { name: "profile", defaultImg: profileGrey, activeImg: profile },
+  ];
   const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && searchQuery.trim().length > 1) {
-      e.preventDefault(); // Prevent form submission
+      e.preventDefault();
       navigate(`/search/${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
-  // Debounce logic: update `debouncedQuery` 500ms after typing stops
+  useEffect(() => {
+    fetchImages();
+  }, []);
+
+  const fetchImages = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+
+      const response = await fetch(`${API_BASE_URL}/Profile/GetUserProfilePicture`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      setProfilePicture(data.result);
+    } catch (err) {
+      console.error('Failed to fetch images', err);
+    }
+  };
+
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedQuery(searchQuery);
     }, 500);
-
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Call API when debouncedQuery changes
   useEffect(() => {
     if (debouncedQuery.trim() === "") return;
-
     if (debouncedQuery.trim().length < 2) {
+      setSearchResultsAnimals([]);
       setSearchResultsUsers([]);
-      setSearchResultsUsers([]);
-
       return;
     }
-
     const fetchResults = async () => {
       try {
-        const token = localStorage.getItem("authToken"); // or wherever you store it
-        console.log("token " + token);
+        const token = localStorage.getItem("authToken");
         const response = await axios.get(
           `${API_BASE_URL}/api/Search/${searchQuery}`,
           {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
+            headers: { Authorization: `Bearer ${token}` }
           }
         );
         setSearchResultsAnimals(response.data.animals);
         setSearchResultsUsers(response.data.users);
-        // const data = await response.json();
-        console.log("Search results:", response.data);
-        // Optionally update state or context with search results
       } catch (err) {
         console.error("Error during search:", err);
-        setSearchResults([]);
-
       }
     };
-
     fetchResults();
   }, [debouncedQuery]);
 
@@ -76,35 +101,86 @@ function Header() {
 
   return (
     <>
-      <header className="text-white d-flex align-items-center justify-content-between p-3">
+      <header className="text-white d-flex align-items-center justify-content-between p-2 custom-border" style={{ height: "65px" }}>
         {isAuthenticated ? (
-          <>
-            <Link to="/catalog" className="text-white text-decoration-none">
-              <h1 className="m-0" id="title">WildLens</h1>
-            </Link>
-
-            <form onSubmit={(e) => e.preventDefault()} className="d-flex mx-3" id="search-bar">
-              <input
-                type="text"
-                className="form-control me-2"
-                placeholder="Search for profiles or mammals..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={handleKeyDown}
-              />
-            </form>
-
-            <div className="d-flex">
-              <Link to="/account">
-                <button className="btn btn-light me-2">Profile</button>
+          <div className="container-fluid d-flex align-items-center justify-content-between">
+            {/* Left: Logo + Search */}
+            <div className="d-flex align-items-center">
+              <Link to="/catalog" className="text-white text-decoration-none me-3">
+                <img src={logo} alt="WildLens Logo" height="60" />
               </Link>
-              <button className="btn btn-danger" onClick={handleLogout}>Logout</button>
+              <form onSubmit={(e) => e.preventDefault()} className="d-flex" style={{ width: "300px" }}>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Search for profiles or mammals..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                />
+              </form>
             </div>
-          </>
+
+            {/* Center: Navigation Buttons */}
+            <div className="d-flex">
+              {icons.map(({ name, defaultImg, activeImg }) => (
+                <Link
+                  key={name}
+                  to="/catalog" // adapte la route si besoin
+                  className="text-white text-decoration-none me-3 header-img-custom pe-3 ps-3"
+                  onClick={() => setActive(name)}
+
+                >
+                  <img
+                    src={active === name ? activeImg : defaultImg}
+                    alt={`${name} icon`}
+                    height="50"
+                    style={{ cursor: "pointer" }}
+                  />
+                </Link>
+              ))}
+            </div>
+
+            {/* Right: Account Button */}
+            <div className="d-flex align-items-center">
+              <div
+                className="dropdown"
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                style={{ position: "relative", display: "inline-block" }}>
+                <img
+                  src={profilePicture || profilePic}
+                  className="card-img-top rounded-circle border border-secondary"
+                  alt="Animal"
+                  width="50"
+                  height="50"
+                />
+                {isHovered && (
+              <ul
+                className="dropdown-menu show"
+                style={{
+                  display: "block",
+                  position: "absolute",
+                  top: "50px",
+                  right: "0",
+                  zIndex: 1000,
+                }}
+              >
+                <li>
+                  <Link className="dropdown-item" to="/settings">Paramètres</Link>
+                </li>
+                <li>
+                  <button className="dropdown-item" onClick={handleLogout}>Déconnexion</button>
+                </li>
+              </ul>
+            )}
+              </div>
+            </div>
+          </div>
         ) : (
-          <>
+          <div className="container-fluid d-flex align-items-center justify-content-between">
             <Link to="/" className="text-white text-decoration-none">
-              <h1 className="m-0" id="title">WildLens</h1>
+              <h1 className="m-0">WildLens</h1>
             </Link>
             <div className="d-flex">
               <Link to="/login">
@@ -114,24 +190,19 @@ function Header() {
                 <button className="btn btn-outline-light">Register</button>
               </Link>
             </div>
-          </>
+          </div>
         )}
       </header>
 
       {(searchResultsAnimals.length > 0 || searchResultsUsers.length > 0) && searchQuery.trim().length >= 2 && (
         <div
-          className="position-absolute start-50 translate-middle-x p-3 bg-light rounded shadow overflow-auto"
-          style={{
-            maxHeight: "200px",
-            width: "50%",
-            top: "70px", // adjust based on your header height (50px + padding)
-            zIndex: 1000, // ensure it sits on top of other content
-          }}
+          className="position-absolute p-3 bg-light rounded shadow overflow-auto"
+          style={{ maxHeight: "200px", width: "500px", top: "70px", zIndex: 1000 }}
         >
           <ul className="list-group">
-            {showAnimals && searchResultsAnimals.length > 0 && (
+            {searchResultsAnimals.length > 0 && (
               <>
-                <li className="list-group-item p-1 bg-light text-center text-muted border-0">
+                <li className="list-group-item p-1 bg-light text-muted border-0">
                   <small>🐾 Animals</small>
                 </li>
                 {searchResultsAnimals.map((animal, index) => (
@@ -152,7 +223,7 @@ function Header() {
               </>
             )}
 
-            {showUsers && searchResultsUsers.length > 0 && (
+            {searchResultsUsers.length > 0 && (
               <>
                 <li className="list-group-item p-1 bg-light text-center text-muted border-0">
                   <small>👤 Users</small>
