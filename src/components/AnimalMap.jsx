@@ -1,25 +1,48 @@
 import { useState, useEffect } from 'react';
-import { Modal, Button, Carousel, Form } from 'react-bootstrap';
-import { FaStar, FaEdit, FaUpload, FaTimes } from 'react-icons/fa';
-import { useAuth } from '../context/AuthContext';
+import { Form } from 'react-bootstrap';
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
-import {
-  ComposableMap,
-  Geographies,
-  Geography,
-  ZoomableGroup
-} from "react-simple-maps";
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import { MapContainer, TileLayer } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-cluster';
+import { Marker, Popup } from 'react-leaflet';
 
-// Sample polygon (GeoJSON format)
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+});
+L.Marker.prototype.options.icon = DefaultIcon;
+
+const markers = [
+  { id: 1, lat: 48.8566, lng: 2.3522, label: "Paris" },
+  { id: 2, lat: 51.5074, lng: -0.1278, label: "Londres" },
+  { id: 3, lat: 40.7128, lng: -74.006, label: "New York" },
+  { id: 4, lat: 35.6895, lng: 139.6917, label: "Tokyo" },
+];
+
 function AnimalMap() {
-  const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
   const { animal } = useParams();
-  const [results, setResults] = useState(null); // single animal, not an array
-  const [categories, setCategories] = useState([]);
-  const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
+  const [results, setResults] = useState(null);
   const [animalPolygon, setAnimalPolygon] = useState(null);
+  const [showMine, setShowMine] = useState(false);
+  const [selectedEndangerLevels, setSelectedEndangerLevels] = useState(["common","uncommon","rare","extinct"]);
+
+  const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
+
+  const endangerLevels = [
+    "Least Concern",
+    "Near Threatened",
+    "Vulnerable",
+    "Endangered",
+    "Critically Endangered",
+    "Extinct in the Wild",
+    "Extinct"
+  ];
 
   useEffect(() => {
     const fetchSearchResults = async () => {
@@ -31,14 +54,8 @@ function AnimalMap() {
           },
         });
         setResults(response.data || null);
-        setCategories(["Users", "Animals", "Category"]);
         const allPolygons = JSON.parse(response.data);
-        // Parse polygon string into GeoJSON
-        if (allPolygons != null) {
-          setAnimalPolygon(allPolygons);
-        } else {
-          setAnimalPolygon(null);
-        }
+        setAnimalPolygon(allPolygons || null);
       } catch (err) {
         console.error("Search failed:", err);
         setResults(null);
@@ -49,80 +66,69 @@ function AnimalMap() {
     fetchSearchResults();
   }, [animal]);
 
-  return (
-    <>
-      <div className="container my-5">
-        <div className="card-body p-0">
-          <div className="map-responsive" style={{ width: "100%", overflowX: "auto" }}>
-            <ComposableMap
-              projectionConfig={{ scale: 160 }}
-              style={{ width: "100%", height: "auto" }}
-            >
-              <ZoomableGroup>
-                {/* World countries */}
-                <Geographies geography={geoUrl}>
-                  {({ geographies }) =>
-                    geographies.map((geo) => (
-                      <Geography
-                        key={geo.rsmKey}
-                        geography={geo}
-                        style={{
-                          default: {
-                            fill: "#f8f9fa",
-                            stroke: "#dee2e6",
-                            strokeWidth: 0.5,
-                            outline: "none",
-                          },
-                          hover: {
-                            fill: "#0d6efd",
-                            outline: "none",
-                          },
-                          pressed: {
-                            fill: "#0b5ed7",
-                            outline: "none",
-                          },
-                        }}
-                        onClick={() => {
-                          alert(`Clicked: ${geo.properties.NAME}`);
-                        }}
-                      />
-                    ))
-                  }
-                </Geographies>
+  const handleEndangerChange = (level) => {
+    setSelectedEndangerLevels(prev =>
+      prev.includes(level)
+        ? prev.filter(l => l !== level)
+        : [...prev, level]
+    );
+  };
 
-                <Geographies geography={animalPolygon}>
-                  {({ geographies }) =>
-                    geographies.map((geo, i) => (
-                      <Geography
-                        key={`polygon-${i}`}
-                        geography={geo}
-                        style={{
-                          default: {
-                            fill: "rgba(0, 123, 255, 0.3)", // transparent Bootstrap blue
-                            stroke: "#0d6efd",
-                            strokeWidth: 1,
-                            outline: "none",
-                          },
-                          hover: {
-                            fill: "rgba(0, 123, 255, 0.5)",
-                            outline: "none",
-                          },
-                          pressed: {
-                            fill: "rgba(0, 123, 255, 0.7)",
-                            outline: "none",
-                          },
-                        }}
-                        onClick={() => alert(`Clicked polygon: ${geo.properties.name}`)}
-                      />
-                    ))
-                  }
-                </Geographies>
-              </ZoomableGroup>
-            </ComposableMap>
+  return (
+    <div style={{ display: 'flex', height: '80vh', width: '100%' }}>
+      {/* Left Sidebar */}
+      <div style={{ width: '250px', padding: '10px', background: '#f8f9fa', borderRight: '1px solid #ddd' }}>
+        <h5>Filters</h5>
+        <Form.Check
+          type="switch"
+          id="show-mine-switch"
+          label="Show only my pictures"
+          checked={showMine}
+          onChange={(e) => setShowMine(e.target.checked)}
+        />
+
+        <div className="mt-3">
+          <strong>Endangerment Levels</strong>
+          <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+            {endangerLevels.map(level => (
+              <Form.Check
+                key={level}
+                type="checkbox"
+                label={level}
+                checked={selectedEndangerLevels.includes(level)}
+                onChange={() => handleEndangerChange(level)}
+              />
+            ))}
           </div>
         </div>
       </div>
-    </>
+
+      {/* Map */}
+      <div style={{ flexGrow: 1 }}>
+        <MapContainer
+          center={[20, 0]}
+          zoom={3}
+          minZoom={3}
+          worldCopyJump={false}
+          maxBoundsViscosity={1.0}
+          maxBounds={[[-85, -180], [85, 180]]}
+          style={{ height: '100%', width: '100%' }}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://osm.org">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+
+          <MarkerClusterGroup>
+            {markers.map(marker => (
+              <Marker key={marker.id} position={[marker.lat, marker.lng]}>
+                <Popup>{marker.label}</Popup>
+              </Marker>
+            ))}
+          </MarkerClusterGroup>
+        </MapContainer>
+      </div>
+    </div>
   );
 }
 

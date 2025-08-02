@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from 'axios';
 import { useAuth } from "../context/AuthContext";
+import { getDeviceInfo } from "../utils/device";
 import "bootstrap/dist/css/bootstrap.min.css";
 import logo from "../assets/logo.png"; // Ajoute ton logo ici
 import map from "../assets/Map.png"; // Ajoute ton logo ici
@@ -14,8 +15,6 @@ import exploreGrey from "../assets/exploreGrey.png"; // Ajoute ton logo ici
 import pictureGrey from "../assets/pictureGrey.png"; // Ajoute ton logo ici
 import profileGrey from "../assets/profileGrey.png"; // Ajoute ton logo ici
 import profilePic from "../assets/profilePic.png"; // Ajoute ton logo ici
-
-
 import { color } from "d3";
 
 function Header() {
@@ -24,7 +23,8 @@ function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [profilePicture, setProfilePicture] = useState("");
   const [isHovered, setIsHovered] = useState(false);
-
+  const fileInputRef = useRef();
+  const [device, setDevice] = useState("Unknown device");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [searchResultsAnimals, setSearchResultsAnimals] = useState([]);
   const [searchResultsUsers, setSearchResultsUsers] = useState([]);
@@ -44,23 +44,11 @@ function Header() {
     }
   };
 
+
   useEffect(() => {
-    fetchImages();
+    setDevice(getDeviceInfo().device);
+    //fetchImages();
   }, []);
-
-  const fetchImages = async () => {
-    try {
-      const token = localStorage.getItem("authToken");
-
-      const response = await fetch(`${API_BASE_URL}/Profile/GetUserProfilePicture`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      setProfilePicture(data.result);
-    } catch (err) {
-      console.error('Failed to fetch images', err);
-    }
-  };
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -94,6 +82,48 @@ function Header() {
     fetchResults();
   }, [debouncedQuery]);
 
+  const fetchImages = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+
+      const response = await fetch(`${API_BASE_URL}/Profile/GetUserProfilePicture`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      setProfilePicture(data.result);
+    } catch (err) {
+      console.error('Failed to fetch images', err);
+    }
+  };
+
+  const handleFileChange = async (event) => {
+    console.log(event.target.files[0]);
+    const file = event.target.files[0];
+    if (!file || !file.type.startsWith('image/')) return;
+
+    const formData = new FormData();
+    formData.append('picture', file, file.name);
+    formData.append('animalName', animal);
+
+    const response = await fetch(`${API_BASE_URL}/Catalog/UploadPicture`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    
+  };
+
+  const handleIconClick = async (name) => {
+    if (name === "picture") {
+      fileInputRef.current?.click();
+    }
+    else {
+      setActive(name);
+      navigate(`/catalog`);
+    }
+    console.log("Active icon:", name);
+  };
+
   const handleLogout = () => {
     logout();
     navigate("/");
@@ -124,12 +154,11 @@ function Header() {
             {/* Center: Navigation Buttons */}
             <div className="d-flex">
               {icons.map(({ name, defaultImg, activeImg }) => (
-                <Link
-                  key={name}
-                  to="/catalog" // adapte la route si besoin
-                  className="text-white text-decoration-none me-3 header-img-custom pe-3 ps-3"
-                  onClick={() => setActive(name)}
 
+                <div
+                  key={name}
+                  className="text-white text-decoration-none me-3 header-img-custom pe-3 ps-3"
+                  onClick={() => handleIconClick(name)}
                 >
                   <img
                     src={active === name ? activeImg : defaultImg}
@@ -137,8 +166,10 @@ function Header() {
                     height="50"
                     style={{ cursor: "pointer" }}
                   />
-                </Link>
+                </div>
               ))}
+              <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} />
+
             </div>
 
             {/* Right: Account Button */}
@@ -156,38 +187,38 @@ function Header() {
                   height="50"
                 />
                 {isHovered && (
-              <ul
-                className="dropdown-menu show"
-                style={{
-                  display: "block",
-                  position: "absolute",
-                  top: "50px",
-                  right: "0",
-                  zIndex: 1000,
-                }}
-              >
-                <li>
-                  <Link className="dropdown-item" to="/settings">Paramètres</Link>
-                </li>
-                <li>
-                  <button className="dropdown-item" onClick={handleLogout}>Déconnexion</button>
-                </li>
-              </ul>
-            )}
+                  <ul
+                    className="dropdown-menu show"
+                    style={{
+                      display: "block",
+                      position: "absolute",
+                      top: "50px",
+                      right: "0",
+                      zIndex: 1000,
+                    }}
+                  >
+                    <li>
+                      <Link className="dropdown-item" to="/settings">Paramètres</Link>
+                    </li>
+                    <li>
+                      <button className="dropdown-item" onClick={handleLogout}>Déconnexion</button>
+                    </li>
+                  </ul>
+                )}
               </div>
             </div>
           </div>
         ) : (
           <div className="container-fluid d-flex align-items-center justify-content-between">
-            <Link to="/" className="text-white text-decoration-none">
-              <h1 className="m-0">WildLens</h1>
-            </Link>
+            <Link to="/" className="text-white text-decoration-none me-3">
+                <img src={logo} alt="WildLens Logo" height="60" />
+              </Link>
             <div className="d-flex">
               <Link to="/login">
                 <button className="btn btn-light me-2">Login</button>
               </Link>
               <Link to="/register">
-                <button className="btn btn-outline-light">Register</button>
+                <button className="btn btn-light me-2">Register</button>
               </Link>
             </div>
           </div>
