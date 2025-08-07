@@ -10,6 +10,10 @@ import SearchPage from "./pages/SearchPage";
 import AnimalWikiPage from "./pages/AnimalWikiPage";
 import AnimalPicturesPage from "./pages/AnimalPicturePage"; // You'll create this
 import AnimalPictureModal from "./components/AnimalPictureModal"; // You'll create this
+import ProfilePage from "./pages/ProfilePage";
+import UserPictureComponent from "./components/UserPictureComponent";
+import SettingsPage from "./pages/SettingsPage";
+import HistoryPage from "./pages/HistoryPage";
 
 import { useAuth } from "./context/AuthContext";
 
@@ -48,6 +52,12 @@ function App() {
         <Route path="/animalwiki/:animal" element={<AnimalWikiPage />} />
         <Route path="/catalog/:user/:animal" element={<AnimalPicturesPage />} />
         <Route path="/catalog/:userName/:animal/:imgPath" element={<AnimalPictureModal />} />
+        <Route path="/profile/:userName" element={<ProfilePage />}>  
+            <Route index element={<Navigate to="pictures" replace />} />
+            <Route path="pictures" element={<InfoPage />} />
+            <Route path="taxonomy" element={<SettingsPage />} />
+            <Route path="badges" element={<HistoryPage />} />
+        </Route>
       </Routes>
     </>
   );

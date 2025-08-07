@@ -9,6 +9,7 @@ function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { login } = useAuth();
+  const [error, setError] = useState("");
   const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
 
   const handleGoogleLoginSuccess = async (credentialResponse) => {
@@ -32,15 +33,16 @@ function LoginForm() {
       localStorage.setItem("userName", userName); // Save token to localStorage
       // Redirect to the specified URL
       if (redirectUrl) {
-        window.location.href = "/catalog";
+        window.location.href = `${window.location.origin}/wildlens/catalog`;
       }
     } catch (error) {
       console.error("Error during Google login:", error.response?.data || error.message);
+      setError(error.response?.data || error.message);
     }
   };
 
   const handleGoogleLoginError = () => {
-    console.error("Google login failed!");
+    setError("Google login failed!");
   };
 
   const handleSubmit = async (e) => {
@@ -53,7 +55,7 @@ function LoginForm() {
       // login(response.data.token);
       localStorage.setItem("authToken", response.data.token); // Save token to localStorage
     } catch (error) {
-      console.error("Login error:", error.response?.data || error.message);
+      setError(error.message);
     }
   };
 
@@ -87,23 +89,25 @@ function LoginForm() {
         </form>
 
         <div className="text-center">
-          <a href="/login">
-            <img src={appleSignIn} className="img-fluid mb-2" alt="Sign in with Apple" />
-          </a>
           <GoogleOAuthProvider clientId="932744116215-gpnj47qo47vopq9ba133ergimtoisbj6.apps.googleusercontent.com">
-        
-                  <GoogleLogin
-                    onSuccess={handleGoogleLoginSuccess}
-                    onError={handleGoogleLoginError}
-                    shape="rectangular"
-                    theme="outline"
-                    text="signin_with"
-                    size="large"
-                    logo_alignment="left"
-                  />
+
+            <GoogleLogin
+              onSuccess={handleGoogleLoginSuccess}
+              onError={handleGoogleLoginError}
+              shape="rectangular"
+              theme="outline"
+              text="signin_with"
+              size="large"
+              logo_alignment="left"
+            />
           </GoogleOAuthProvider>
 
         </div>
+        {error && (
+          <div className="alert alert-danger text-center mb-3 mt-3">
+            {error}
+          </div>
+        )}
       </div>
     </div>
   );

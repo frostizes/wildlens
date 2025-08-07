@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+
 import "bootstrap/dist/css/bootstrap.min.css";
 import appleSignIn from "../assets/apple_sign_in.png";
 import googleSignIn from "../assets/google_sign_in.png";
@@ -31,8 +33,9 @@ function RegisterForm() {
         email: email,
         password: password,
       });
-      console.log("Success:", response.data);
-
+      console.log("Success:", response.data.token);
+      localStorage.setItem("authToken", response.data.token); // Save token to localStorage
+      localStorage.setItem("userName", name); // Save name to localStorage
       // Redirect to login page
       navigate("/catalog");
     } catch (err) {
@@ -44,6 +47,38 @@ function RegisterForm() {
     }
   };
 
+  const handleGoogleLoginSuccess = async (credentialResponse) => {
+    try {
+      if (!credentialResponse.credential) {
+        throw new Error("Google credential is missing!");
+      }
+
+      // Send the credential as a raw string
+      const response = await axios.post(
+        `${API_BASE_URL}/api/Auth/google-login`,
+        credentialResponse.credential, // Pass the credential directly
+        {
+          headers: {
+            "Content-Type": "application/json", // Ensure the content type is set correctly
+          },
+        }
+      );
+      const { token, redirectUrl, userName } = response.data; // Extract token and redirect URL
+      localStorage.setItem("authToken", token); // Save token to localStorage
+      localStorage.setItem("userName", userName); // Save token to localStorage
+      // Redirect to the specified URL
+      if (redirectUrl) {
+        window.location.href = "/catalog";
+      }
+    } catch (error) {
+      console.error("Error during Google login:", error.response?.data || error.message);
+    }
+  };
+
+  const handleGoogleLoginError = () => {
+    console.error("Google login failed!");
+  };
+
   return (
     <div className="d-flex vh-100 justify-content-center align-items-center">
       <div className="p-4 border rounded shadow bg-light" id="register-form-container">
@@ -53,7 +88,7 @@ function RegisterForm() {
             <input
               type="text"
               className="form-control"
-              placeholder="Full Name"
+              placeholder="Username"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
@@ -101,12 +136,21 @@ function RegisterForm() {
         </form>
 
         <div className="text-center">
-          <a href="/login">
-            <img src={appleSignIn} className="img-fluid mb-2 token-sign-in" alt="Sign in with Apple" />
-          </a>
-          <a href="/login">
-            <img src={googleSignIn} className="img-fluid token-sign-in" alt="Sign in with Google" />
-          </a>
+          <div className="text-center">
+            <GoogleOAuthProvider clientId="932744116215-gpnj47qo47vopq9ba133ergimtoisbj6.apps.googleusercontent.com">
+
+              <GoogleLogin
+                onSuccess={handleGoogleLoginSuccess}
+                onError={handleGoogleLoginError}
+                shape="rectangular"
+                theme="outline"
+                text="signin_with"
+                size="large"
+                logo_alignment="left"
+              />
+            </GoogleOAuthProvider>
+
+          </div>
         </div>
       </div>
     </div>

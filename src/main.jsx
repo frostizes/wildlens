@@ -13,7 +13,7 @@ import { BrowserRouter } from 'react-router-dom';
 
 createRoot(document.getElementById('root')).render(
   <AuthProvider>
-    <BrowserRouter>
+    <BrowserRouter basename="/wildlens">
       <App />
     </BrowserRouter>
   </AuthProvider>,

@@ -41,3 +41,13 @@ a {
     background-color: lightgray;
     border-radius: 20%;
 }
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 2s linear infinite;
+}

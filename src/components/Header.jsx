@@ -24,6 +24,7 @@ function Header() {
   const [profilePicture, setProfilePicture] = useState("");
   const [isHovered, setIsHovered] = useState(false);
   const fileInputRef = useRef();
+  const [isUploading, setIsUploading] = useState(false);
   const [device, setDevice] = useState("Unknown device");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [searchResultsAnimals, setSearchResultsAnimals] = useState([]);
@@ -32,7 +33,7 @@ function Header() {
   const icons = [
     { name: "explore", defaultImg: exploreGrey, activeImg: explore },
     { name: "map", defaultImg: mapGrey, activeImg: map },
-    { name: "picture", defaultImg: pictureGrey, activeImg: picture },
+    { name: "picture", defaultImg: pictureGrey, activeImg: picture, bg: "2px, solid, #2A9D8F" },
     { name: "profile", defaultImg: profileGrey, activeImg: profile },
   ];
   const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
@@ -97,20 +98,32 @@ function Header() {
   };
 
   const handleFileChange = async (event) => {
-    console.log(event.target.files[0]);
     const file = event.target.files[0];
+    console.log("ben");
     if (!file || !file.type.startsWith('image/')) return;
+    const token = localStorage.getItem("authToken");
 
-    const formData = new FormData();
-    formData.append('picture', file, file.name);
-    formData.append('animalName', animal);
+    setIsUploading(true); // 🔄 Start loading
 
-    const response = await fetch(`${API_BASE_URL}/Catalog/UploadPicture`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
-    });
-    
+    try {
+      const formData = new FormData();
+      formData.append('picture', file, file.name);
+
+
+      const response = await fetch(`${API_BASE_URL}/Catalog/UploadPicture`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      // Handle response (check status, etc.)
+    } catch (error) {
+      console.error("Upload error:", error);
+    } finally {
+      event.target.value = null;
+      setIsUploading(false); // ✅ Stop loading
+    }
+
   };
 
   const handleIconClick = async (name) => {
@@ -153,10 +166,11 @@ function Header() {
 
             {/* Center: Navigation Buttons */}
             <div className="d-flex">
-              {icons.map(({ name, defaultImg, activeImg }) => (
+              {icons.map(({ name, defaultImg, activeImg, bg }) => (
 
                 <div
                   key={name}
+                  style={{ border: bg, borderRadius: "20%", cursor: "pointer" }}
                   className="text-white text-decoration-none me-3 header-img-custom pe-3 ps-3"
                   onClick={() => handleIconClick(name)}
                 >
@@ -164,14 +178,14 @@ function Header() {
                     src={active === name ? activeImg : defaultImg}
                     alt={`${name} icon`}
                     height="50"
-                    style={{ cursor: "pointer" }}
+                    className={name === "picture" && isUploading ? "spin" : ""}
                   />
                 </div>
               ))}
               <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} />
 
             </div>
-
+            
             {/* Right: Account Button */}
             <div className="d-flex align-items-center">
               <div
@@ -211,8 +225,8 @@ function Header() {
         ) : (
           <div className="container-fluid d-flex align-items-center justify-content-between">
             <Link to="/" className="text-white text-decoration-none me-3">
-                <img src={logo} alt="WildLens Logo" height="60" />
-              </Link>
+              <img src={logo} alt="WildLens Logo" height="60" />
+            </Link>
             <div className="d-flex">
               <Link to="/login">
                 <button className="btn btn-light me-2">Login</button>
