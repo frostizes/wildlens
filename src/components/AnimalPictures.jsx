@@ -83,7 +83,7 @@ function AnimalGallery() {
         {images.map((img, idx) => (
           <div className="col-6 col-md-3 mb-3 position-relative" key={idx}>
             <Link
-              to={`/catalog/${userName}/${animal}/${encodeURIComponent(img)}`}
+              to={`/profile/${userName}/${animal}/${encodeURIComponent(img)}`}
               state={{ background: location }}>
               <img
                 src={img}

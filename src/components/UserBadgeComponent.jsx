@@ -8,7 +8,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { Link, useLocation } from "react-router-dom";
 
 
-function UserPictureComponent() {
+function UserBadgeComponent() {
   const location = useLocation();
   const { animal } = useParams();
   const [results, setResults] = useState(null); // single animal, not an array
@@ -23,4 +23,4 @@ function UserPictureComponent() {
   );
 }
 
-export default AnimalDetailsPanel;
+export default UserBadgeComponent;

@@ -54,6 +54,7 @@ function LoginForm() {
       });
       // login(response.data.token);
       localStorage.setItem("authToken", response.data.token); // Save token to localStorage
+      localStorage.setItem("userName", response.data.userName); // Save token to localStorage
     } catch (error) {
       setError(error.message);
     }

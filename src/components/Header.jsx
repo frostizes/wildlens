@@ -130,6 +130,10 @@ function Header() {
     if (name === "picture") {
       fileInputRef.current?.click();
     }
+
+    if(name === "profile") {
+      navigate(`/profile/${localStorage.getItem("userName")}`);
+    }
     else {
       setActive(name);
       navigate(`/catalog`);

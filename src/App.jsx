@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate  } from "react-router-dom";
 import Header from "./components/Header";
 import LandingPage from "./components/LandingPage";
 import Footer from "./components/Footer";
@@ -12,8 +12,8 @@ import AnimalPicturesPage from "./pages/AnimalPicturePage"; // You'll create thi
 import AnimalPictureModal from "./components/AnimalPictureModal"; // You'll create this
 import ProfilePage from "./pages/ProfilePage";
 import UserPictureComponent from "./components/UserPictureComponent";
-import SettingsPage from "./pages/SettingsPage";
-import HistoryPage from "./pages/HistoryPage";
+import TaxonomyComponent from "./components/UserTaxonomyComponent";
+import BadgesComponent from "./components/UserBadgeComponent";
 
 import { useAuth } from "./context/AuthContext";
 
@@ -51,12 +51,12 @@ function App() {
         <Route path="/search/:query" element={<SearchPage />} />
         <Route path="/animalwiki/:animal" element={<AnimalWikiPage />} />
         <Route path="/catalog/:user/:animal" element={<AnimalPicturesPage />} />
-        <Route path="/catalog/:userName/:animal/:imgPath" element={<AnimalPictureModal />} />
+        <Route path="/profile/:userName/:animal/:imgPath" element={<AnimalPictureModal />} />
         <Route path="/profile/:userName" element={<ProfilePage />}>  
             <Route index element={<Navigate to="pictures" replace />} />
-            <Route path="pictures" element={<InfoPage />} />
-            <Route path="taxonomy" element={<SettingsPage />} />
-            <Route path="badges" element={<HistoryPage />} />
+            <Route path="pictures" element={<UserPictureComponent />} />
+            <Route path="taxonomy" element={<TaxonomyComponent />} />
+            <Route path="badges" element={<BadgesComponent />} />
         </Route>
       </Routes>
     </>
