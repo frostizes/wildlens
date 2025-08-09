@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import "bootstrap/dist/css/bootstrap.min.css";
 import appleSignIn from "../assets/apple_sign_in.png";
@@ -7,6 +8,7 @@ import { useAuth } from "../context/AuthContext";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
+  const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const { login } = useAuth();
   const [error, setError] = useState("");
@@ -33,7 +35,7 @@ function LoginForm() {
       localStorage.setItem("userName", userName); // Save token to localStorage
       // Redirect to the specified URL
       if (redirectUrl) {
-        window.location.href = `${window.location.origin}/wildlens/catalog`;
+        navigate("/catalog");
       }
     } catch (error) {
       console.error("Error during Google login:", error.response?.data || error.message);
