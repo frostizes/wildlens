@@ -7,6 +7,7 @@ import RegisterPage from "./pages/RegisterPage";
 import AccountPage from "./pages/AccountPage";
 import CatalogPage from "./pages/CatalogPage";
 import SearchPage from "./pages/SearchPage";
+import MapPage from "./pages/MapPage";
 import AnimalWikiPage from "./pages/AnimalWikiPage";
 import AnimalPicturesPage from "./pages/AnimalPicturePage"; // You'll create this
 import AnimalPictureModal from "./components/AnimalPictureModal"; // You'll create this
@@ -48,6 +49,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/catalog" element={<CatalogPage />} />
+        <Route path="/map" element={<MapPage />} />
         <Route path="/search/:query" element={<SearchPage />} />
         <Route path="/animalwiki/:animal" element={<AnimalWikiPage />} />
         <Route path="/catalog/:user/:animal" element={<AnimalPicturesPage />} />

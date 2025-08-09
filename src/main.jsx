@@ -8,13 +8,13 @@ import './css/register.css'
 import './css/AnimalDetail.css'
 import App from './App.jsx'
 import { AuthProvider } from "./context/AuthContext";
-import { HashRouter  } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 
 
 createRoot(document.getElementById('root')).render(
   <AuthProvider>
-    <HashRouter  basename="/wildlens">
+    <BrowserRouter basename="/wildlens">
       <App />
-    </HashRouter >
+    </BrowserRouter>
   </AuthProvider>,
 )

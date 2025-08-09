@@ -47,6 +47,7 @@ function Header() {
 
 
   useEffect(() => {
+    setActive(localStorage.getItem("currentPage") || "explore");
     setDevice(getDeviceInfo().device);
     //fetchImages();
   }, []);
@@ -130,12 +131,20 @@ function Header() {
     if (name === "picture") {
       fileInputRef.current?.click();
     }
-
-    if(name === "profile") {
+    else if (name === "profile") {
+      setActive(name);
+      localStorage.setItem("currentPage", name);
       navigate(`/profile/${localStorage.getItem("userName")}`);
+    }
+
+    else if (name === "map") {
+      setActive(name);
+      localStorage.setItem("currentPage", name);
+      navigate(`/map`);
     }
     else {
       setActive(name);
+      localStorage.setItem("currentPage", name);
       navigate(`/catalog`);
     }
     console.log("Active icon:", name);
@@ -189,7 +198,7 @@ function Header() {
               <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} />
 
             </div>
-            
+
             {/* Right: Account Button */}
             <div className="d-flex align-items-center">
               <div
