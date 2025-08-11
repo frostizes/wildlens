@@ -9,12 +9,13 @@ import './css/AnimalDetail.css'
 import App from './App.jsx'
 import { AuthProvider } from "./context/AuthContext";
 import { BrowserRouter } from 'react-router-dom';
+import { Hash } from 'lucide-react'
 
 
 createRoot(document.getElementById('root')).render(
   <AuthProvider>
-    <BrowserRouter basename="/wildlens">
+    <HashRouter basename="/wildlens">
       <App />
-    </BrowserRouter>
+    </HashRouter>
   </AuthProvider>,
 )
