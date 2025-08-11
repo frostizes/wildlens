@@ -8,7 +8,7 @@ import './css/register.css'
 import './css/AnimalDetail.css'
 import App from './App.jsx'
 import { AuthProvider } from "./context/AuthContext";
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, HashRouter } from 'react-router-dom';
 import { Hash } from 'lucide-react'
 
 
