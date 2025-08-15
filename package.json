@@ -33,8 +33,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
-    "@types/react": "18.2.70",
-    "@types/react-dom": "18.2.20",
+    "@types/react": "^18.2.70",
+    "@types/react-dom": "^18.2.20",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.19.0",
@@ -45,6 +45,7 @@
     "globals": "^15.14.0",
     "postcss": "^8.5.3",
     "tailwindcss": "^4.0.9",
+    "typescript": "^5.9.2",
     "vite": "^6.2.0"
   },
   "description": "This is the project of the front end for the pokedex application.",

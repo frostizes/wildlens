@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from 'axios';
+import React from "react";
+import { getUserLocation, checkLocationPermission } from "../utils/location";
 import { useAuth } from "../context/AuthContext";
 import { getDeviceInfo } from "../utils/device";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -50,6 +52,10 @@ function Header() {
     setActive(localStorage.getItem("currentPage") || "explore");
     setDevice(getDeviceInfo().device);
     //fetchImages();
+    if(isAuthenticated) {
+      const prem = checkLocationPermission();
+      GetPositionFromLib();
+    }
   }, []);
 
   useEffect(() => {
@@ -70,7 +76,7 @@ function Header() {
       try {
         const token = localStorage.getItem("authToken");
         const response = await axios.get(
-          `${API_BASE_URL}/api/Search/${searchQuery}`,
+          `${API_BASE_URL}/Search/${searchQuery}`,
           {
             headers: { Authorization: `Bearer ${token}` }
           }
@@ -98,6 +104,19 @@ function Header() {
     }
   };
 
+    const GetPositionFromLib = () => {
+    getUserLocation(
+      (lat, lng) => {
+        localStorage.setItem("latitude", lat);
+        localStorage.setItem("longitude", lng);
+        // do whatever you want here with the coordinates
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+      }
+    );
+  };
+
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
     console.log("ben");
@@ -109,6 +128,8 @@ function Header() {
     try {
       const formData = new FormData();
       formData.append('picture', file, file.name);
+      formData.append('longitude', localStorage.getItem("longitude") || 0);
+      formData.append('latitude', localStorage.getItem("latitude") || 0);
 
 
       const response = await fetch(`${API_BASE_URL}/Catalog/UploadPicture`, {

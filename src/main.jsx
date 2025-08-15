@@ -14,7 +14,7 @@ import { Hash } from 'lucide-react'
 
 createRoot(document.getElementById('root')).render(
   <AuthProvider>
-    <HashRouter basename="/wildlens">
+    <HashRouter>
       <App />
     </HashRouter>
   </AuthProvider>,

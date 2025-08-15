@@ -5,7 +5,7 @@ import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { MapContainer, TileLayer } from 'react-leaflet';
+import { MapContainer, TileLayer, useMapEvents } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import { Marker, Popup } from 'react-leaflet';
 
@@ -18,19 +18,20 @@ let DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-const markers = [
-  { id: 1, lat: 48.8566, lng: 2.3522, label: "Paris" },
-  { id: 2, lat: 51.5074, lng: -0.1278, label: "Londres" },
-  { id: 3, lat: 40.7128, lng: -74.006, label: "New York" },
-  { id: 4, lat: 35.6895, lng: 139.6917, label: "Tokyo" },
-];
+// const markers = [
+//   { id: 1, lat: 48.8566, lng: 2.3522, label: "Paris" },
+//   { id: 2, lat: 51.5074, lng: -0.1278, label: "Londres" },
+//   { id: 3, lat: 40.7128, lng: -74.006, label: "New York" },
+//   { id: 4, lat: 35.6895, lng: 139.6917, label: "Tokyo" },
+// ];
 
 function AnimalMap() {
   const { animal } = useParams();
   const [results, setResults] = useState(null);
   const [animalPolygon, setAnimalPolygon] = useState(null);
   const [showMine, setShowMine] = useState(false);
-  const [selectedEndangerLevels, setSelectedEndangerLevels] = useState(["common","uncommon","rare","extinct"]);
+  const [selectedEndangerLevels, setSelectedEndangerLevels] = useState(["common", "uncommon", "rare", "extinct"]);
+  const [markers, setMarkers] = useState([]);
 
   const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
 
@@ -47,15 +48,34 @@ function AnimalMap() {
   useEffect(() => {
     const fetchSearchResults = async () => {
       try {
-        const token = localStorage.getItem('authToken');
-        const response = await axios.get(`${API_BASE_URL}/Catalog/GetAnimalLocation/${animal}`, {
+        const token = localStorage.getItem("authToken");
+
+        // Prepare the request object
+        const requestParams = {
+          NorthEastBoundCorner: 10, // You might also need lng
+          SouthWestBoundCorner: 10, // Same here
+          Zoom: 1,
+          RedlistCategory: "redlistCategory",
+          ShowOnlyUserPictures: false
+        };
+
+        const response = await axios.get(`${API_BASE_URL}/Search/AllPicturePoints`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          params: requestParams
         });
-        setResults(response.data || null);
-        const allPolygons = JSON.parse(response.data);
-        setAnimalPolygon(allPolygons || null);
+        // setMarkers(response.data);
+        const data = response.data; // array of AnimalPictureLocationDto
+        console.log("datra", data[0]);
+        setMarkers(data.map(item => ({
+          id: item.pictureId,
+          lat: item.latitude,
+          lng: item.longitude,
+          label: "ben"
+        })));
+
+
       } catch (err) {
         console.error("Search failed:", err);
         setResults(null);
@@ -119,17 +139,41 @@ function AnimalMap() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-          <MarkerClusterGroup>
+          <MarkerClusterGroup
+            chunkedLoading={true} // improves performance for many markers
+            showCoverageOnHover={false} // hide circle around clusters
+            spiderfyOnMaxZoom={true}>
             {markers.map(marker => (
               <Marker key={marker.id} position={[marker.lat, marker.lng]}>
                 <Popup>{marker.label}</Popup>
               </Marker>
             ))}
           </MarkerClusterGroup>
+          <MapEventLogger onMove={(center, zoom) => {
+            // optional: call fetchMarkers(center, zoom) here
+          }} />
         </MapContainer>
       </div>
     </div>
   );
+}
+
+function MapEventLogger({ onMove }) {
+  const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
+
+  const map = useMapEvents({
+    moveend: () => {
+      console.log("ben", map.getCenter(), map.getZoom());
+      console.log("bound", map.getBounds());
+      if (onMove) onMove(map.getCenter(), map.getZoom());
+    },
+    zoomend: () => {
+      console.log("ben", map.getCenter(), map.getZoom());
+      if (onMove) onMove(map.getCenter(), map.getZoom());
+    },
+  });
+
+  return null;
 }
 
 export default AnimalMap;

@@ -29,16 +29,6 @@ function UserPictureComponent() {
     fetchPictures();
   }, []);
 
-  const openModal = (image) => {
-    setSelectedImage(image);
-    navigate(`${location.pathname}?image=${encodeURIComponent(image.ImagePath)}`, { replace: false });
-  };
-
-  const closeModal = () => {
-    setSelectedImage(null);
-    navigate(location.pathname, { replace: false }); // remove query param from URL
-  };
-
   return (
     <div className="container">
       <div className="row">

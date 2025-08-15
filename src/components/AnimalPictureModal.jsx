@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useRef } from 'react';
 import axios from 'axios';
+import mapPin from "../assets/mappin.png"; // Ajoute ton logo ici
 
 
 
@@ -34,7 +35,7 @@ function AnimalPictureModal({ show, selectedNode }) {
   }, []); // Fetch images when modal is shown
 
 
-    const RetrieveUserReactions = async () => {
+  const RetrieveUserReactions = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/PictureReaction/GetUserReactions/${encodeURIComponent(imgPath)}`, {
         headers: {
@@ -146,40 +147,54 @@ function AnimalPictureModal({ show, selectedNode }) {
   };
 
   const handleLike = async () => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/PictureReaction/likePicture?imagePath=${encodeURIComponent(imgPath)}`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (response.ok) {
-      
-      setHasLiked(!hasLiked);
-      RetrieveLikes();
-    }
-  } catch (error) {
-    console.error('Error liking image:', error);
-  }
-};
+    try {
+      const response = await fetch(`${API_BASE_URL}/PictureReaction/likePicture?imagePath=${encodeURIComponent(imgPath)}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
 
-const handleDislike = async () => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/PictureReaction/dislikePicture?imagePath=${encodeURIComponent(imgPath)}`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (response.ok) {
-      setHasDisliked(!hasDisliked);
+        setHasLiked(!hasLiked);
+        RetrieveLikes();
+      }
+    } catch (error) {
+      console.error('Error liking image:', error);
     }
-  } catch (error) {
-    console.error('Error disliking image:', error);
-  }
-};
+  };
+
+  const handleDislike = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/PictureReaction/dislikePicture?imagePath=${encodeURIComponent(imgPath)}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        setHasDisliked(!hasDisliked);
+      }
+    } catch (error) {
+      console.error('Error disliking image:', error);
+    }
+  };
 
   return (
     <Modal show={true} onHide={handleClose} centered dialogClassName="custom-modal" id="animal-modal">
       <Modal.Header className="d-flex justify-content-between align-items-center">
-        <Modal.Title>{selectedNode}</Modal.Title>
+        <div className="d-flex align-items-center-start flex-column">
+          <Modal.Title className="h5">{animal}</Modal.Title>
+          <div className="d-flex align-items-center">
+              <span className="text-end text-muted" style={{ fontSize: '0.85rem' }}>France</span>
+              <img
+                src={mapPin}
+                className="ms-3 border-secondary"
+                alt="Animal"
+                width="20"
+                height="20"
+              />
+
+            </div>
+        </div>
         <div className="d-flex align-items-center">
+          <strong className="me-3"  style={{ wordBreak: 'break-word' }}>{userName}</strong>
           <Button variant="close" onClick={handleClose} />
         </div>
       </Modal.Header>
