@@ -5,12 +5,14 @@ import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { useAuth } from "../context/AuthContext";
 import { MapContainer, TileLayer, useMapEvents } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import { Marker, Popup } from 'react-leaflet';
 
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+import { Link, useNavigate } from "react-router-dom";
 
 let DefaultIcon = L.icon({
   iconUrl: icon,
@@ -27,7 +29,9 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 function AnimalMap() {
   const { animal } = useParams();
+  const { user, isAuthenticated, logout } = useAuth();
   const [results, setResults] = useState(null);
+  const navigate = useNavigate();
   const [animalPolygon, setAnimalPolygon] = useState(null);
   const [showMine, setShowMine] = useState(false);
   const [selectedEndangerLevels, setSelectedEndangerLevels] = useState(["common", "uncommon", "rare", "extinct"]);
@@ -60,9 +64,7 @@ function AnimalMap() {
         };
 
         const response = await axios.get(`${API_BASE_URL}/Search/AllPicturePoints`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          withCredentials: true,
           params: requestParams
         });
         // setMarkers(response.data);
@@ -72,7 +74,8 @@ function AnimalMap() {
           id: item.pictureId,
           lat: item.latitude,
           lng: item.longitude,
-          label: "ben"
+          animalName: item.animalName,
+          imagePath: item.imagePath
         })));
 
 
@@ -92,6 +95,12 @@ function AnimalMap() {
         ? prev.filter(l => l !== level)
         : [...prev, level]
     );
+  };
+
+
+  const handleMarkerClick = async (marker) => {
+    console.log("Marker clicked:", marker);
+    navigate(`/profile/${user}/${marker.animalName}/${encodeURIComponent(marker.imagePath)}`);
   };
 
   return (
@@ -144,8 +153,13 @@ function AnimalMap() {
             showCoverageOnHover={false} // hide circle around clusters
             spiderfyOnMaxZoom={true}>
             {markers.map(marker => (
-              <Marker key={marker.id} position={[marker.lat, marker.lng]}>
-                <Popup>{marker.label}</Popup>
+              <Marker
+                key={marker.id}
+                eventHandlers={{
+                  click: () => handleMarkerClick(marker),
+                }}
+                position={[marker.lat, marker.lng]}>
+
               </Marker>
             ))}
           </MarkerClusterGroup>

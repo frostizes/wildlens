@@ -21,9 +21,7 @@ function AnimalDetailsPanel() {
         console.log("Fetching animal details for:", animal);
         const token = localStorage.getItem('authToken');
         const response = await axios.get(`${API_BASE_URL}/Catalog/GetAnimalDetails/${animal}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          withCredentials: true
         });
         console.log("Search results:", response.data);
         setResults(response.data || null);

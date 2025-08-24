@@ -5,20 +5,20 @@ import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function UserPictureComponent() {
-  const { animal } = useParams();
+  const { userName, animal } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const [results, setResults] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null); // image to show in modal
   const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
-  const userName = localStorage.getItem("userName");
+
 
   useEffect(() => {
     const fetchPictures = async () => {
       try {
         const token = localStorage.getItem('authToken');
         const response = await axios.get(`${API_BASE_URL}/Catalog/GetAllAnimalsPicturesForUser`, {
-          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true
         });
         setResults(response.data || []);
       } catch (err) {

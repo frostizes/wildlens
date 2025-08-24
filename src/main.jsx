@@ -8,14 +8,18 @@ import './css/register.css'
 import './css/AnimalDetail.css'
 import App from './App.jsx'
 import { AuthProvider } from "./context/AuthContext";
+import { NavProvider } from "./context/NavContext";
 import { BrowserRouter, HashRouter } from 'react-router-dom';
 import { Hash } from 'lucide-react'
 
 
 createRoot(document.getElementById('root')).render(
-  <AuthProvider>
-    <HashRouter>
-      <App />
-    </HashRouter>
-  </AuthProvider>,
+  <NavProvider>
+    <AuthProvider>
+      <HashRouter>
+        <App />
+      </HashRouter>
+    </AuthProvider>,
+  </NavProvider>
+
 )

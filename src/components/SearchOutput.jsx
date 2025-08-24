@@ -14,9 +14,7 @@ function DisplaySearchOutput() {
       try {
         const token = localStorage.getItem('authToken');
         const response = await axios.get(`${API_BASE_URL}/api/Search/${query}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          withCredentials: true
         });
         setResults(response.data.animals || []);
         setCategories(["Users", "Animals","Category"]); // Replace with real data if needed

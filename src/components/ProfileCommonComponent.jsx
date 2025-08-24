@@ -4,18 +4,22 @@ import { FaStar, FaEdit, FaUpload, FaTimes } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import { useParams, NavLink } from "react-router-dom";
 import axios from "axios";
+import profilePic from "../assets/profilePic.png"; // Ajoute ton logo ici
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Link, useLocation } from "react-router-dom";
 
 
 function ProfileCommonComponent() {
+
+
   const { userName } = useParams();
+  const [profilePicture, setProfilePicture] = useState("");
 
   return (
     <div className="card text-center p-4 mb-3">
       <div className="d-flex flex-column align-items-center">
         <img
-          src="/path/to/profile.jpg" // Replace with actual image URL
+          src={profilePicture || profilePic} // Replace with actual image URL
           alt="Profile"
           className="rounded-circle mb-3"
           style={{ width: "120px", height: "120px", objectFit: "cover", border: "3px solid #555" }}

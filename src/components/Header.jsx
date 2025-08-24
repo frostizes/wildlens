@@ -17,10 +17,12 @@ import exploreGrey from "../assets/exploreGrey.png"; // Ajoute ton logo ici
 import pictureGrey from "../assets/pictureGrey.png"; // Ajoute ton logo ici
 import profileGrey from "../assets/profileGrey.png"; // Ajoute ton logo ici
 import profilePic from "../assets/profilePic.png"; // Ajoute ton logo ici
+import { useNav } from "../context/NavContext";
 import { color } from "d3";
 
 function Header() {
-  const { isAuthenticated, logout } = useAuth();
+  const { activeTab, setActiveTab } = useNav();
+  const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [profilePicture, setProfilePicture] = useState("");
@@ -48,11 +50,20 @@ function Header() {
   };
 
 
+  // useEffect(async () => {
+  //   try {
+  //       const response = await axios.get(`${API_BASE_URL}/api/Auth/profile`, { withCredentials: true });
+  //       console.log("User profile:", response.data);
+  //     } catch (err) {
+  //       console.error("Error during search:", err);
+  //     }
+  //     return;
+  // }, []);
+
   useEffect(() => {
     setActive(localStorage.getItem("currentPage") || "explore");
     setDevice(getDeviceInfo().device);
-    //fetchImages();
-    if(isAuthenticated) {
+    if (isAuthenticated) {
       const prem = checkLocationPermission();
       GetPositionFromLib();
     }
@@ -78,7 +89,7 @@ function Header() {
         const response = await axios.get(
           `${API_BASE_URL}/Search/${searchQuery}`,
           {
-            headers: { Authorization: `Bearer ${token}` }
+            withCredentials: true
           }
         );
         setSearchResultsAnimals(response.data.animals);
@@ -95,7 +106,7 @@ function Header() {
       const token = localStorage.getItem("authToken");
 
       const response = await fetch(`${API_BASE_URL}/Profile/GetUserProfilePicture`, {
-        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
       });
       const data = await response.json();
       setProfilePicture(data.result);
@@ -104,7 +115,7 @@ function Header() {
     }
   };
 
-    const GetPositionFromLib = () => {
+  const GetPositionFromLib = () => {
     getUserLocation(
       (lat, lng) => {
         localStorage.setItem("latitude", lat);
@@ -132,11 +143,14 @@ function Header() {
       formData.append('latitude', localStorage.getItem("latitude") || 0);
 
 
-      const response = await fetch(`${API_BASE_URL}/Catalog/UploadPicture`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
+          const response = await axios.post(
+      `${API_BASE_URL}/Catalog/UploadPicture`,
+      formData,
+      {
+        withCredentials: true,              // ✅ send cookies (auth)
+        headers: { "Content-Type": "multipart/form-data" }, // ✅ tell server it’s file upload
+      }
+    );
 
       // Handle response (check status, etc.)
     } catch (error) {
@@ -153,27 +167,41 @@ function Header() {
       fileInputRef.current?.click();
     }
     else if (name === "profile") {
-      setActive(name);
+      setActiveTab(name);
       localStorage.setItem("currentPage", name);
-      navigate(`/profile/${localStorage.getItem("userName")}`);
+      navigate(`/profile/${user}`);
     }
 
     else if (name === "map") {
-      setActive(name);
+      setActiveTab(name);
       localStorage.setItem("currentPage", name);
       navigate(`/map`);
     }
     else {
-      setActive(name);
+      setActiveTab(name);
       localStorage.setItem("currentPage", name);
       navigate(`/catalog`);
     }
     console.log("Active icon:", name);
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/api/Auth/logout`,
+        {},
+        {
+          withCredentials: true
+        }
+      );
+      if (response.status === 200) {
+        logout();
+        setActiveTab("explore"); // reset tab
+        navigate("/");
+      }
+    } catch (err) {
+      console.error("Error during search:", err);
+    }
   };
 
   return (
@@ -209,7 +237,7 @@ function Header() {
                   onClick={() => handleIconClick(name)}
                 >
                   <img
-                    src={active === name ? activeImg : defaultImg}
+                    src={activeTab  === name ? activeImg : defaultImg}
                     alt={`${name} icon`}
                     height="50"
                     className={name === "picture" && isUploading ? "spin" : ""}

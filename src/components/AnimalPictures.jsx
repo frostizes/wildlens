@@ -27,7 +27,7 @@ function AnimalGallery() {
   const fetchImages = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/Catalog/GetUserImagesPaths/${animal}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true
       });
       const data = await response.json();
       setImages(data);
@@ -48,7 +48,7 @@ function AnimalGallery() {
 
     const response = await fetch(`${API_BASE_URL}/Catalog/UploadPicture`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
+      withCredentials: true,
       body: formData,
     });
 
@@ -61,7 +61,7 @@ function AnimalGallery() {
 
     const response = await fetch(`${API_BASE_URL}/Catalog/DeletePicture`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
+      withCredentials: true,
       body: formData,
     });
 

@@ -24,9 +24,7 @@ function Taxonomy() {
         const token = localStorage.getItem("authToken");
         console.log("token", token);
         const response = await axios.get(`${API_BASE_URL}/Catalog/GetUserCatalog`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+          withCredentials: true
         });
 
         const catalog = response.data;

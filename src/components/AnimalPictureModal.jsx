@@ -38,9 +38,7 @@ function AnimalPictureModal({ show, selectedNode }) {
   const RetrieveUserReactions = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/PictureReaction/GetUserReactions/${encodeURIComponent(imgPath)}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        withCredentials: true
       });
       if (response.status === 200) {
         setHasLiked(response.data.hasLiked);
@@ -54,9 +52,7 @@ function AnimalPictureModal({ show, selectedNode }) {
   const RetrieveLikes = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/PictureReaction/GetAllLikes/${encodeURIComponent(imgPath)}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        withCredentials: true
       });
       if (response.status === 200) {
         setLikes(response.data); // Assuming the backend returns the like count directly
@@ -69,12 +65,12 @@ function AnimalPictureModal({ show, selectedNode }) {
 
   const RetrieveComments = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/PictureReaction/GetAllComments/${encodeURIComponent(imgPath)}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+      const response = await axios.get(
+        `${API_BASE_URL}/PictureReaction/GetAllComments/${encodeURIComponent(imgPath)}`,
+        {
+          withCredentials: true
         }
-      });
+      );
       console.log(response);
       if (response.status != 200) {
         alert('Failed to get comment.');
@@ -83,27 +79,24 @@ function AnimalPictureModal({ show, selectedNode }) {
       console.log(response.data[0].comment);
       setComments(response.data);
     } catch (error) {
-      console.error('Error posting comment:', error);
+      console.error('Error getting comment:', error);
     }
   };
 
   const handleCommentSubmit = async () => {
     if (newComment.trim() === '') return;
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/PictureReaction/commentPicture?imagePath=${encodeURIComponent(imgPath)}&comment=${newComment}`,
+      const response = await axios.post(
+        `${API_BASE_URL}/PictureReaction/commentPicture`,
+        {},
         {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
+          params: {
+            imagePath: encodeURIComponent(imgPath),
+            comment: newComment
+          },
+          withCredentials: true
+        },
       );
-
-      if (!response.ok) {
-        alert('Failed to post comment.');
-        return;
-      }
 
       RetrieveComments();
       setNewComment('');
@@ -127,10 +120,7 @@ function AnimalPictureModal({ show, selectedNode }) {
       // Upload the image
       const response = await fetch(API_BASE_URL + "/Catalog/DeletePicture", {
         method: 'POST',
-        headers: {
-          "Authorization": `Bearer ${token}`, // ✅ Use JWT Token
-          // Don't set Content-Type header when using FormData
-        },
+        withCredentials: true,
         body: formData
       });
 
@@ -148,11 +138,17 @@ function AnimalPictureModal({ show, selectedNode }) {
 
   const handleLike = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/PictureReaction/likePicture?imagePath=${encodeURIComponent(imgPath)}`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
+      const response = await axios.post(
+        `${API_BASE_URL}/PictureReaction/likePicture`,
+        {},
+        {
+          params: {
+            imagePath: encodeURIComponent(imgPath),
+          },
+          withCredentials: true
+        },
+      );
+      if (response.status === 200) {
 
         setHasLiked(!hasLiked);
         RetrieveLikes();
@@ -164,11 +160,17 @@ function AnimalPictureModal({ show, selectedNode }) {
 
   const handleDislike = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/PictureReaction/dislikePicture?imagePath=${encodeURIComponent(imgPath)}`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
+      const response = await axios.post(
+        `${API_BASE_URL}/PictureReaction/dislikePicture`,
+        {},
+        {
+          params: {
+            imagePath: encodeURIComponent(imgPath),
+          },
+          withCredentials: true
+        },
+      );
+      if (response.status === 200) {
         setHasDisliked(!hasDisliked);
       }
     } catch (error) {
@@ -182,19 +184,19 @@ function AnimalPictureModal({ show, selectedNode }) {
         <div className="d-flex align-items-center-start flex-column">
           <Modal.Title className="h5">{animal}</Modal.Title>
           <div className="d-flex align-items-center">
-              <span className="text-end text-muted" style={{ fontSize: '0.85rem' }}>France</span>
-              <img
-                src={mapPin}
-                className="ms-3 border-secondary"
-                alt="Animal"
-                width="20"
-                height="20"
-              />
+            <span className="text-end text-muted" style={{ fontSize: '0.85rem' }}>France</span>
+            <img
+              src={mapPin}
+              className="ms-3 border-secondary"
+              alt="Animal"
+              width="20"
+              height="20"
+            />
 
-            </div>
+          </div>
         </div>
         <div className="d-flex align-items-center">
-          <strong className="me-3"  style={{ wordBreak: 'break-word' }}>{userName}</strong>
+          <strong className="me-3" style={{ wordBreak: 'break-word' }}>{userName}</strong>
           <Button variant="close" onClick={handleClose} />
         </div>
       </Modal.Header>

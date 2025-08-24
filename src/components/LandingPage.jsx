@@ -14,12 +14,12 @@ function LandingPage() {
                 <img src={background} alt="background image" id="background-image" />
                 <div id="floating-section-bg-picture">
                     <h2>Download it now !</h2>
-                    <div class="store">
+                    <div className="store">
                         <a>
                             <img src={apple_store} className="logo" alt="Vite logo" />
                         </a>
                     </div>
-                    <div class="store">
+                    <div className="store">
                         <a>
                             <img src={play_store} className="logo" alt="Vite logo" />
                         </a>
