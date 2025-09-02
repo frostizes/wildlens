@@ -22,7 +22,7 @@ import { color } from "d3";
 
 function Header() {
   const { activeTab, setActiveTab } = useNav();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, token } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [profilePicture, setProfilePicture] = useState("");
@@ -85,11 +85,13 @@ function Header() {
     }
     const fetchResults = async () => {
       try {
-        const token = localStorage.getItem("authToken");
         const response = await axios.get(
           `${API_BASE_URL}/Search/${searchQuery}`,
           {
-            withCredentials: true
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json"
+            }
           }
         );
         setSearchResultsAnimals(response.data.animals);
@@ -103,10 +105,12 @@ function Header() {
 
   const fetchImages = async () => {
     try {
-      const token = localStorage.getItem("authToken");
-
       const response = await fetch(`${API_BASE_URL}/Profile/GetUserProfilePicture`, {
-        withCredentials: true,
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
       });
       const data = await response.json();
       setProfilePicture(data.result);
@@ -143,14 +147,16 @@ function Header() {
       formData.append('latitude', localStorage.getItem("latitude") || 0);
 
 
-          const response = await axios.post(
-      `${API_BASE_URL}/Catalog/UploadPicture`,
-      formData,
-      {
-        withCredentials: true,              // ✅ send cookies (auth)
-        headers: { "Content-Type": "multipart/form-data" }, // ✅ tell server it’s file upload
-      }
-    );
+      const response = await axios.post(
+        `${API_BASE_URL}/Catalog/UploadPicture`,
+        formData,
+        {
+          headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "multipart/form-data"
+            }             
+        }
+      );
 
       // Handle response (check status, etc.)
     } catch (error) {
@@ -180,18 +186,20 @@ function Header() {
     else {
       setActiveTab(name);
       localStorage.setItem("currentPage", name);
-      navigate(`/catalog`);
+      navigate(`/feed`);
     }
-    console.log("Active icon:", name);
   };
 
   const handleLogout = async () => {
     try {
       const response = await axios.post(
         `${API_BASE_URL}/api/Auth/logout`,
-        {},
+        {}, // body is empty
         {
-          withCredentials: true
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
       );
       if (response.status === 200) {
@@ -211,7 +219,7 @@ function Header() {
           <div className="container-fluid d-flex align-items-center justify-content-between">
             {/* Left: Logo + Search */}
             <div className="d-flex align-items-center">
-              <Link to="/catalog" className="text-white text-decoration-none me-3">
+              <Link to="/feed" className="text-white text-decoration-none me-3">
                 <img src={logo} alt="WildLens Logo" height="60" />
               </Link>
               <form onSubmit={(e) => e.preventDefault()} className="d-flex" style={{ width: "300px" }}>
@@ -237,7 +245,7 @@ function Header() {
                   onClick={() => handleIconClick(name)}
                 >
                   <img
-                    src={activeTab  === name ? activeImg : defaultImg}
+                    src={activeTab === name ? activeImg : defaultImg}
                     alt={`${name} icon`}
                     height="50"
                     className={name === "picture" && isUploading ? "spin" : ""}
@@ -336,9 +344,19 @@ function Header() {
                   <small>👤 Users</small>
                 </li>
                 {searchResultsUsers.map((user, index) => (
-                  <li key={`user-${index}`} className="list-group-item">
+                  <Link
+                    to={`/profile/${encodeURIComponent(user)}`}
+                    key={`user-${index}`}
+                    className="list-group-item text-dark text-decoration-none"
+                    class="custom_link_class"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSearchResultsAnimals([]);
+                      setSearchResultsUsers([]);
+                    }}
+                  >
                     👤 {user ?? "Unnamed user"}
-                  </li>
+                  </Link>
                 ))}
               </>
             )}

@@ -14,6 +14,8 @@ function AnimalDetailsPanel() {
   const [results, setResults] = useState(null); // single animal, not an array
   const [categories, setCategories] = useState([]);
   const [userName, setSetUserName] = useState("");
+    const { user, isAuthenticated, logout, token } = useAuth();
+
   const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
   useEffect(() => {
     const fetchSearchResults = async () => {
@@ -21,7 +23,10 @@ function AnimalDetailsPanel() {
         console.log("Fetching animal details for:", animal);
         const token = localStorage.getItem('authToken');
         const response = await axios.get(`${API_BASE_URL}/Catalog/GetAnimalDetails/${animal}`, {
-          withCredentials: true
+          headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
         });
         console.log("Search results:", response.data);
         setResults(response.data || null);

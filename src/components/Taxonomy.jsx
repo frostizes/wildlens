@@ -3,9 +3,12 @@ import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Button from 'react-bootstrap/Button';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from "../context/AuthContext";
+
 
 function Taxonomy() {
   const location = useLocation();
+  const { user, isAuthenticated, logout, token } = useAuth();
   const [allScores, setAllScores] = useState([]);
   const [animals, setAnimals] = useState([]);
   const [filteredScores, setFilteredScores] = useState([]);
@@ -19,12 +22,12 @@ function Taxonomy() {
 
   useEffect(() => {
     async function fetchTaxonomy() {
-      SetUserName(localStorage.getItem("userName"));
       try {
-        const token = localStorage.getItem("authToken");
-        console.log("token", token);
         const response = await axios.get(`${API_BASE_URL}/Catalog/GetUserCatalog`, {
-          withCredentials: true
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
         });
 
         const catalog = response.data;

@@ -10,7 +10,7 @@ import mapPin from "../assets/mappin.png"; // Ajoute ton logo ici
 
 
 function AnimalPictureModal({ show, selectedNode }) {
-  const { user } = useAuth(); // Get user from AuthContext
+    const { user, isAuthenticated, logout, token } = useAuth();
   const [image, setImages] = useState(); // State for images
   const [comments, setComments] = useState([]);
   const fileInputRef = useRef();
@@ -25,7 +25,6 @@ function AnimalPictureModal({ show, selectedNode }) {
   const navigate = useNavigate();
   const handleClose = () => navigate(-1); // 👈 This goes back to the previous page
   const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
-  const token = localStorage.getItem("authToken"); // or wherever you store it
 
   useEffect(() => {
     setImages(imgPath);
@@ -38,7 +37,10 @@ function AnimalPictureModal({ show, selectedNode }) {
   const RetrieveUserReactions = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/PictureReaction/GetUserReactions/${encodeURIComponent(imgPath)}`, {
-        withCredentials: true
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
       });
       if (response.status === 200) {
         setHasLiked(response.data.hasLiked);
@@ -52,7 +54,10 @@ function AnimalPictureModal({ show, selectedNode }) {
   const RetrieveLikes = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/PictureReaction/GetAllLikes/${encodeURIComponent(imgPath)}`, {
-        withCredentials: true
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
       });
       if (response.status === 200) {
         setLikes(response.data); // Assuming the backend returns the like count directly
@@ -68,7 +73,10 @@ function AnimalPictureModal({ show, selectedNode }) {
       const response = await axios.get(
         `${API_BASE_URL}/PictureReaction/GetAllComments/${encodeURIComponent(imgPath)}`,
         {
-          withCredentials: true
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
         }
       );
       console.log(response);
@@ -94,7 +102,10 @@ function AnimalPictureModal({ show, selectedNode }) {
             imagePath: encodeURIComponent(imgPath),
             comment: newComment
           },
-          withCredentials: true
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
         },
       );
 
@@ -120,7 +131,10 @@ function AnimalPictureModal({ show, selectedNode }) {
       // Upload the image
       const response = await fetch(API_BASE_URL + "/Catalog/DeletePicture", {
         method: 'POST',
-        withCredentials: true,
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
         body: formData
       });
 
@@ -145,7 +159,10 @@ function AnimalPictureModal({ show, selectedNode }) {
           params: {
             imagePath: encodeURIComponent(imgPath),
           },
-          withCredentials: true
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
         },
       );
       if (response.status === 200) {

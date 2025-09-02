@@ -3,12 +3,16 @@ import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Button from 'react-bootstrap/Button';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from "../context/AuthContext";
+
 
 
 function UserTaxonomyComponent() {
   const location = useLocation();
   const [allScores, setAllScores] = useState([]);
   const [animals, setAnimals] = useState([]);
+  const { user, isAuthenticated, logout, token } = useAuth();
+
   const [filteredScores, setFilteredScores] = useState([]);
   const [filteredAnimals, setFilteredAnimals] = useState([]);
   const [path, setPath] = useState(["Mammal"]);
@@ -22,10 +26,11 @@ function UserTaxonomyComponent() {
     async function fetchTaxonomy() {
       SetUserName(localStorage.getItem("userName"));
       try {
-        const token = localStorage.getItem("authToken");
         console.log("token", token);
         const response = await axios.get(`${API_BASE_URL}/Catalog/GetUserCatalog`, {
-          withCredentials: true
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
 
         const catalog = response.data;

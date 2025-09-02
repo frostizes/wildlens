@@ -5,43 +5,86 @@ import axios from "axios";
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => localStorage.getItem("user"));
+  const [token, setToken] = useState(() => localStorage.getItem("authToken"));
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
 
   // Restore from localStorage on mount
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-      setIsAuthenticated(true);
-    }
-  }, []);
 
   // Optionally verify with backend
   useEffect(() => {
-    const fetchAuthStatus = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/api/auth/me`, {
-          withCredentials: true,
-        });
-        if (response.status === 200) {
-          setIsAuthenticated(true);
-          setUser(response.data.userName); // if backend returns user info
+    const initAuth = async () => {
+      const savedToken = localStorage.getItem("authToken");
+      const savedUser = localStorage.getItem("user");
+
+      if (savedToken) {
+        let validToken = savedToken;
+
+        if (isTokenExpired(savedToken)) {
+          validToken = await refreshToken(savedToken);
         }
-      } catch {
-        setIsAuthenticated(false);
-        setUser(null);
+
+        if (validToken) {
+          setToken(validToken);
+          setIsAuthenticated(true);
+          if (savedUser) setUser(savedUser);
+        }
       }
     };
 
-    fetchAuthStatus();
+    initAuth();
   }, [API_BASE_URL]);
 
-  const login = (userData) => {
-    setUser(userData);
+
+    // 🔹 Helper: decode JWT payload (without validation)
+  const decodeJWT = (token) => {
+    try {
+      const payload = token.split(".")[1];
+      return JSON.parse(atob(payload));
+    } catch {
+      return null;
+    }
+  };
+
+  // 🔹 Check if token expired
+  const isTokenExpired = (token) => {
+    const decoded = decodeJWT(token);
+    if (!decoded?.exp) return true;
+    const now = Math.floor(Date.now() / 1000);
+    return decoded.exp < now;
+  };
+
+    // 🔹 Refresh token (example: adjust API endpoint to yours)
+  const refreshToken = async (oldToken) => {
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/api/auth/refresh`,
+        {},
+        { headers: { Authorization: `Bearer ${oldToken}` }, withCredentials: true }
+      );
+
+      const newToken = response.data.token;
+      setToken(newToken);
+      localStorage.setItem("authToken", newToken);
+      return newToken;
+    } catch (err) {
+      console.error("Failed to refresh token", err);
+      logout();
+      return null;
+    }
+  };
+
+  const checkAuthStatus = async () => {
+
+  };
+
+  const login = ({userName, token}) => {
+    setUser(userName);
     setIsAuthenticated(true);
-    localStorage.setItem("user", JSON.stringify(userData));
+    setToken(token);
+    localStorage.setItem("user", userName);
+    localStorage.setItem("authToken", token);
   };
 
   const logout = () => {
@@ -52,7 +95,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, token }}>
       {children}
     </AuthContext.Provider>
   );

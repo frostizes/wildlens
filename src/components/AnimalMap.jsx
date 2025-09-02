@@ -29,13 +29,14 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 function AnimalMap() {
   const { animal } = useParams();
-  const { user, isAuthenticated, logout } = useAuth();
   const [results, setResults] = useState(null);
   const navigate = useNavigate();
   const [animalPolygon, setAnimalPolygon] = useState(null);
   const [showMine, setShowMine] = useState(false);
   const [selectedEndangerLevels, setSelectedEndangerLevels] = useState(["common", "uncommon", "rare", "extinct"]);
   const [markers, setMarkers] = useState([]);
+  const { user, isAuthenticated, logout, token } = useAuth();
+
 
   const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
 
@@ -52,8 +53,6 @@ function AnimalMap() {
   useEffect(() => {
     const fetchSearchResults = async () => {
       try {
-        const token = localStorage.getItem("authToken");
-
         // Prepare the request object
         const requestParams = {
           NorthEastBoundCorner: 10, // You might also need lng
@@ -64,7 +63,10 @@ function AnimalMap() {
         };
 
         const response = await axios.get(`${API_BASE_URL}/Search/AllPicturePoints`, {
-          withCredentials: true,
+          headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
           params: requestParams
         });
         // setMarkers(response.data);

@@ -8,7 +8,8 @@ import { Link, useLocation } from "react-router-dom";
 
 function AnimalGallery() {
   const { animal } = useParams();
-  const { user } = useAuth();
+    const { user, isAuthenticated, logout, token } = useAuth();
+
   const location = useLocation();
   const navigate = useNavigate();
   const [images, setImages] = useState([]);
@@ -17,7 +18,6 @@ function AnimalGallery() {
   const [showDeleteIcons, setShowDeleteIcons] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
-  const token = localStorage.getItem('authToken');
 
   useEffect(() => {
     SetUserName(localStorage.getItem("userName"));
@@ -27,7 +27,10 @@ function AnimalGallery() {
   const fetchImages = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/Catalog/GetUserImagesPaths/${animal}`, {
-        withCredentials: true
+                  headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
       });
       const data = await response.json();
       setImages(data);
@@ -48,7 +51,10 @@ function AnimalGallery() {
 
     const response = await fetch(`${API_BASE_URL}/Catalog/UploadPicture`, {
       method: 'POST',
-      withCredentials: true,
+                headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
       body: formData,
     });
 
@@ -61,7 +67,10 @@ function AnimalGallery() {
 
     const response = await fetch(`${API_BASE_URL}/Catalog/DeletePicture`, {
       method: 'POST',
-      withCredentials: true,
+                headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
       body: formData,
     });
 

@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from "../context/AuthContext";
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function UserPictureComponent() {
   const { userName, animal } = useParams();
   const navigate = useNavigate();
+  const { user, isAuthenticated, logout, token } = useAuth();
   const location = useLocation();
   const [results, setResults] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null); // image to show in modal
@@ -16,10 +18,18 @@ function UserPictureComponent() {
   useEffect(() => {
     const fetchPictures = async () => {
       try {
-        const token = localStorage.getItem('authToken');
-        const response = await axios.get(`${API_BASE_URL}/Catalog/GetAllAnimalsPicturesForUser`, {
-          withCredentials: true
-        });
+        const requestParams = {
+          username: userName, // You might also need lng
+        };
+        const response = await axios.get(
+          `${API_BASE_URL}/Catalog/GetAllAnimalsPicturesForUser`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            params: requestParams,
+          }
+        );
         setResults(response.data || []);
       } catch (err) {
         console.error("Failed to fetch images:", err);

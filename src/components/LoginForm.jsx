@@ -13,7 +13,7 @@ function LoginForm() {
   const { login } = useAuth();
   const [error, setError] = useState("");
   const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
-  const FE_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
+  const FE_BASE_URL = import.meta.env.VITE_BASE_URL;
 
   const handleGoogleLoginSuccess = async (credentialResponse) => {
     try {
@@ -31,29 +31,24 @@ function LoginForm() {
           },
         }
       );
-      const { token, redirectUrl, userName } = response.data; // Extract token and redirect URL
-      localStorage.setItem("authToken", token); // Save token to localStorage
-      localStorage.setItem("userName", userName); // Save token to localStorage
-      // Redirect to the specified URL
-      if (redirectUrl) {
-        navigate("/");
-      }
+      login({ userName: response.data.userName, token : response.data.token });
+      navigate("/");
     } catch (error) {
       console.error("Error during Google login:", error.response?.data || error.message);
       setError(error.response?.data || error.message);
     }
   };
 
-  const handleLogin = async () => {
-    try {
-      window.location.href = `${API_BASE_URL}/api/Auth/logintest?returnUrl=${FE_BASE_URL}`;
-      // const response = await axios.get(`${API_BASE_URL}/api/Auth/logintest?returnUrl=/`);
-      // login(response.data.token);
-    } catch (error) {
-      console.error("Login failed:", error.response?.data || error.message);
-      setError(error.message);
-    }
-  };
+  // const handleLogin = async () => {
+  //   try {
+  //     window.location.href = `${API_BASE_URL}/api/Auth/logintest?returnUrl=${FE_BASE_URL}`;
+  //     // const response = await axios.get(`${API_BASE_URL}/api/Auth/logintest?returnUrl=/`);
+  //     // login(response.data.token);
+  //   } catch (error) {
+  //     console.error("Login failed:", error.response?.data || error.message);
+  //     setError(error.message);
+  //   }
+  // };
 
 
   const handleGoogleLoginError = () => {
@@ -63,14 +58,18 @@ function LoginForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/Auth/login`, {
-        email,
-        password,
-      });
-      navigate("/");
+      const response = await axios.post(
+        `${API_BASE_URL}/api/Auth/login`,
+        { email, password },
+        { withCredentials: true }   // 👈 important
+      );
+      if (response.status === 200) {
+
+        login({ userName: response.data.userName, token : response.data.token });
+        navigate("/");
+      }
       // login(response.data.token);
-      localStorage.setItem("authToken", response.data.token); // Save token to localStorage
-      localStorage.setItem("userName", response.data.userName); // Save token to localStorage
+
     } catch (error) {
       console.error("Login failed:", error.response?.data || error.message);
       setError(error.message);
@@ -105,18 +104,21 @@ function LoginForm() {
           </div>
           <button type="submit" className="btn btn-primary w-100 mb-3">Login</button>
         </form>
-        <button
-          type="button"
-          className="btn btn-light border w-100 d-flex align-items-center justify-content-center mb-3"
-          onClick={handleLogin}
-        >
-          <img
-            src="https://developers.google.com/identity/images/g-logo.png"
-            alt="Google Logo"
-            style={{ width: "20px", marginRight: "8px" }}
-          />
-          Continue with Google
-        </button>
+        <div className="text-center">
+          <GoogleOAuthProvider clientId="932744116215-gpnj47qo47vopq9ba133ergimtoisbj6.apps.googleusercontent.com">
+
+            <GoogleLogin
+              onSuccess={handleGoogleLoginSuccess}
+              onError={handleGoogleLoginError}
+              shape="rectangular"
+              theme="outline"
+              text="signin_with"
+              size="large"
+              logo_alignment="left"
+            />
+          </GoogleOAuthProvider>
+
+        </div>
         {error && (
           <div className="alert alert-danger text-center mb-3 mt-3">
             {error}

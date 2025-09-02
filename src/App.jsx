@@ -5,7 +5,7 @@ import Footer from "./components/Footer";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import AccountPage from "./pages/AccountPage";
-import CatalogPage from "./pages/CatalogPage";
+import FeedPage from "./pages/FeedPage";
 import SearchPage from "./pages/SearchPage";
 import MapPage from "./pages/MapPage";
 import AnimalWikiPage from "./pages/AnimalWikiPage";
@@ -34,7 +34,7 @@ function App() {
           element={
             <>
               {isAuthenticated ? (
-                <CatalogPage />
+                <FeedPage />
               ) : (
                 <>
                   <Header />
@@ -48,7 +48,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/account" element={<AccountPage />} />
-        <Route path="/catalog" element={<CatalogPage />} />
+        <Route path="/feed" element={<FeedPage />} />
         <Route path="/map" element={<MapPage />} />
         <Route path="/search/:query" element={<SearchPage />} />
         <Route path="/animalwiki/:animal" element={<AnimalWikiPage />} />

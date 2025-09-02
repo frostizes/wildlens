@@ -2,9 +2,13 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { useAuth } from "../context/AuthContext";
+
 
 function DisplaySearchOutput() {
   const { query } = useParams();
+    const { user, isAuthenticated, logout, token } = useAuth();
+  
   const [results, setResults] = useState([]);
   const [categories, setCategories] = useState([]);
   const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
@@ -14,7 +18,10 @@ function DisplaySearchOutput() {
       try {
         const token = localStorage.getItem('authToken');
         const response = await axios.get(`${API_BASE_URL}/api/Search/${query}`, {
-          withCredentials: true
+                    headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
         });
         setResults(response.data.animals || []);
         setCategories(["Users", "Animals","Category"]); // Replace with real data if needed
