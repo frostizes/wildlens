@@ -12,7 +12,7 @@ import { Marker, Popup } from 'react-leaflet';
 
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation  } from "react-router-dom";
 
 let DefaultIcon = L.icon({
   iconUrl: icon,
@@ -31,6 +31,7 @@ function AnimalMap() {
   const { animal } = useParams();
   const [results, setResults] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const [animalPolygon, setAnimalPolygon] = useState(null);
   const [showMine, setShowMine] = useState(false);
   const [selectedEndangerLevels, setSelectedEndangerLevels] = useState(["common", "uncommon", "rare", "extinct"]);
@@ -64,9 +65,9 @@ function AnimalMap() {
 
         const response = await axios.get(`${API_BASE_URL}/Search/AllPicturePoints`, {
           headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
           params: requestParams
         });
         // setMarkers(response.data);
@@ -102,7 +103,13 @@ function AnimalMap() {
 
   const handleMarkerClick = async (marker) => {
     console.log("Marker clicked:", marker);
-    navigate(`/profile/${user}/${marker.animalName}/${encodeURIComponent(marker.imagePath)}`);
+
+    navigate(
+      `/profile/${user}/${marker.animalName}/${encodeURIComponent(marker.imagePath)}`,
+      {
+        state: { backgroundLocation: location }, // 👈 same as <Link state={{...}}>
+      }
+    );
   };
 
   return (

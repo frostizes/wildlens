@@ -13,6 +13,8 @@ function UserPictureComponent() {
   const [results, setResults] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null); // image to show in modal
   const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
+  const isUserProfile = userName === user;
+
 
 
   useEffect(() => {
@@ -47,7 +49,7 @@ function UserPictureComponent() {
             <div className="card h-100 shadow-sm" style={{ cursor: 'pointer' }}>
               <Link
                 to={`/profile/${userName}/${img.animalName}/${encodeURIComponent(img.imagePath)}`}
-                state={{ background: location }}>
+                state={{ backgroundLocation: location }}>
                 <img
                   src={img.imagePath}
                   alt={img.animalName}

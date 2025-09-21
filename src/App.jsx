@@ -21,21 +21,17 @@ import { useAuth } from "./context/AuthContext";
 function App() {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
-
-  // 👇 If this is a modal navigation, `backgroundLocation` holds the page underneath
   const state = location.state;
 
   return (
     <>
-      {/* 👇 Main routes (underneath modal if present) */}
+      {/* Main routes */}
       <Routes location={state?.backgroundLocation || location}>
         <Route
           path="/"
           element={
             <>
-              {isAuthenticated ? (
-                <FeedPage />
-              ) : (
+              {isAuthenticated ? <FeedPage /> : (
                 <>
                   <Header />
                   <LandingPage />
@@ -53,14 +49,23 @@ function App() {
         <Route path="/search/:query" element={<SearchPage />} />
         <Route path="/animalwiki/:animal" element={<AnimalWikiPage />} />
         <Route path="/catalog/:user/:animal" element={<AnimalPicturesPage />} />
-        <Route path="/profile/:userName/:animal/:imgPath" element={<AnimalPictureModal />} />
-        <Route path="/profile/:userName" element={<ProfilePage />}>  
-            <Route index element={<Navigate to="pictures" replace />} />
-            <Route path="pictures" element={<UserPictureComponent />} />
-            <Route path="taxonomy" element={<TaxonomyComponent />} />
-            <Route path="badges" element={<BadgesComponent />} />
+        <Route path="/profile/:userName" element={<ProfilePage />}>
+          <Route index element={<Navigate to="pictures" replace />} />
+          <Route path="pictures" element={<UserPictureComponent />} />
+          <Route path="taxonomy" element={<TaxonomyComponent />} />
+          <Route path="badges" element={<BadgesComponent />} />
         </Route>
       </Routes>
+
+      {/* Modal routes */}
+      {state?.backgroundLocation && (
+        <Routes>
+          <Route
+            path="/profile/:userName/:animal/:imgPath"
+            element={<AnimalPictureModal />}
+          />
+        </Routes>
+      )}
     </>
   );
 }

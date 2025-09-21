@@ -4,7 +4,6 @@ import { FaStar, FaEdit, FaUpload, FaTimes } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useRef } from 'react';
-import AnimalSearchBar from "./SearchBar";
 import axios from 'axios';
 import mapPin from "../assets/mappin.png"; // Ajoute ton logo ici
 import dots from "../assets/dots.svg"; // Ajoute ton logo ici
@@ -16,10 +15,7 @@ function AnimalPictureModal({ show, selectedNode }) {
   const [image, setImages] = useState(); // State for images
   const [comments, setComments] = useState([]);
   const fileInputRef = useRef();
-  const [searchResultsAnimals, setSearchResultsAnimals] = useState([]);
   const [likes, setLikes] = useState(0);
-  const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [isHovered, setIsHovered] = useState(false);
   const [hasLiked, setHasLiked] = useState(false);
   const [hasDisliked, setHasDisliked] = useState(false);
   const [newComment, setNewComment] = useState('');
@@ -27,22 +23,11 @@ function AnimalPictureModal({ show, selectedNode }) {
   const [hover, setHover] = useState(null);
   const [showDeleteIcons, setShowDeleteIcons] = useState(false);
   const { userName, animal, imgPath } = useParams();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isChangingAnimal, setChangingAnimal] = useState(false);
   const navigate = useNavigate();
-  const handleClose = () => navigate(-1, { replace: true });
+  const handleClose = () => navigate(-1); // 👈 This goes back to the previous page
   const API_BASE_URL = import.meta.env.VITE_REACT_APP_WILD_LENS_BACKEND_BASE_URL;
   const isUserProfile = userName === user;
-  const Tabs = {
-    IMAGE: "image",
-    CHANGE_LOCATION: "changePictureLocation",
-  };
-  const [activeTab, setActiveTab] = useState(Tabs.IMAGE);
 
-
-  const handleCloseAndReload = () => {
-    navigate(`/profile/${userName}`, { replace: true });
-  };
 
   useEffect(() => {
     setImages(imgPath);
@@ -50,6 +35,7 @@ function AnimalPictureModal({ show, selectedNode }) {
     RetrieveLikes();
     RetrieveUserReactions();
   }, []); // Fetch images when modal is shown
+
 
   const RetrieveUserReactions = async () => {
     try {
@@ -212,41 +198,11 @@ function AnimalPictureModal({ show, selectedNode }) {
     }
   };
 
-  const handleDeletePicture = async () => {
-    try {
-      console.log(imgPath);
-      const response = await axios.post(
-        `${API_BASE_URL}/Profile/deletePicture`,
-        {},
-        {
-          params: {
-            imagePath: encodeURIComponent(imgPath),
-          },
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
-        },
-      );
-      if (response.status === 200) {
-        handleCloseAndReload();
-
-      }
-    } catch (error) {
-      console.error('Error deleting image:', error);
-    }
-  };
-
   return (
     <Modal show={true} onHide={handleClose} centered dialogClassName="custom-modal" id="animal-modal">
       <Modal.Header className="d-flex justify-content-between align-items-center">
         <div className="d-flex align-items-center-start flex-column">
-          {isChangingAnimal ? (
-            <AnimalSearchBar token={token} API_BASE_URL={API_BASE_URL} imagePath={image}
-              onAnimalChanged={() => {
-                setChangingAnimal(false);
-              }} />
-          ) : (<Modal.Title className="h5">{animal}</Modal.Title>)}
+          <Modal.Title className="h5">{animal}</Modal.Title>
           <div className="d-flex align-items-center">
             <span className="text-end text-muted" style={{ fontSize: '0.85rem' }}>France</span>
             <img
@@ -262,89 +218,28 @@ function AnimalPictureModal({ show, selectedNode }) {
         <div className="d-flex align-items-center">
           <strong className="me-3" style={{ wordBreak: 'break-word' }}>{userName}</strong>
           {isUserProfile && (
-            <div
-              className="dropdown"
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}>
+            <div>
               <img
-                src={dots}
-                className="border-secondary"
-                alt="Animal"
-                width="20"
-                height="20"
-                style={{ cursor: 'pointer', marginRight: '10px' }}
-              />
-              {isHovered && (
-                <ul
-                  className="dropdown-menu show"
-                  style={{
-                    display: "block",
-                    position: "absolute",
-                    top: "25px",
-                    right: "0",
-                    zIndex: 1000,
-                  }}
-                >
-                  <li>
-                    <button className="dropdown-item" onClick={() => setChangingAnimal(true)}>Change animal on picture</button>
-                  </li>
-                  <li>
-                    <button className="dropdown-item" onClick={() => setActiveTab(Tabs.CHANGE_LOCATION)}>Change picture location</button>
-                  </li>
-                  <li>
-                    <button className="dropdown-item" onClick={handleDeletePicture}>Delete picture</button>
-                  </li>
-                </ul>
-              )}
+                  src={dots}
+                  className="border-secondary"
+                  alt="Animal"
+                  width="20"
+                  height="20"
+                  style={{ cursor: 'pointer', marginRight: '10px' }}
+                  
+                  onClick={handleEditClick}
+                />
             </div>
           )}
-          <Button variant="close" onClick={handleClose} />
+          <Button variant="close" onClick={handleClose}/>
         </div>
       </Modal.Header>
       <Modal.Body>
         <div id='container-picture' className="d-flex">
-          {activeTab === Tabs.IMAGE && (
-            <div className="d-flex flex-column align-items-center flex-grow-1">
-              <img src={image} alt={`Animal`} className="img-fluid rounded-lg" />
-            </div>
-          )}
-          {activeTab === Tabs.CHANGE_LOCATION && (
-            <div style={{ flexGrow: 1 }}>
-              <MapContainer
-                center={[20, 0]}
-                zoom={3}
-                minZoom={3}
-                worldCopyJump={false}
-                maxBoundsViscosity={1.0}
-                maxBounds={[[-85, -180], [85, 180]]}
-                style={{ height: '100%', width: '100%' }}
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://osm.org">OpenStreetMap</a> contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
+          <div className="d-flex flex-column align-items-center flex-grow-1">
+            <img src={image} alt={`Animal`} className="img-fluid rounded-lg" />
+          </div>
 
-                <MarkerClusterGroup
-                  chunkedLoading={true} // improves performance for many markers
-                  showCoverageOnHover={false} // hide circle around clusters
-                  spiderfyOnMaxZoom={true}>
-                  {markers.map(marker => (
-                    <Marker
-                      key={marker.id}
-                      eventHandlers={{
-                        click: () => handleMarkerClick(marker),
-                      }}
-                      position={[marker.lat, marker.lng]}>
-
-                    </Marker>
-                  ))}
-                </MarkerClusterGroup>
-                <MapEventLogger onMove={(center, zoom) => {
-                  // optional: call fetchMarkers(center, zoom) here
-                }} />
-              </MapContainer>
-            </div>
-          )}
           <div id="comment-section" className="border rounded p-3" style={{ width: '400px' }}>
             <div className="comment-list" style={{ maxHeight: '400px', overflowY: 'auto' }}>
               {comments.map((comment, index) => (
